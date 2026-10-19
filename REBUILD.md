@@ -13,6 +13,9 @@ npm run build && npm run package
 npx -p @webos-tools/cli ares-install --device lgtv build/*.ipk
 ```
 
+`apply_branding.py` adds the `home` app category to `public/appinfo.json`. It does not select the default Home app.
+See [Native Home selection](docs/native-home.md) for the test command and optional TV setup.
+
 Not in the pipeline on purpose: `apply_clearer_glass.py` (reverted), `apply_motion.py` and `apply_launchfx.py` (opening animations, laggy on the TV).
 `app-assets/` holds the files the scripts need that are not in the upstream repo (icon pack, wallpapers, system app icons, app icon and splash): copy them into `app/public/`.
 `tools/tv/` is what runs on the TV (Home-button/screensaver watcher, clock fix, extra blocked hosts); see the notes in each file.

@@ -46,7 +46,8 @@ Don't want to build anything? Download `com.ammar027.lumen_1.0.9_all.ipk` from t
 - **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.0.9_all.ipk`.
 
 The release build leaves out third-party app logos and the default wallpapers are public-domain paintings; apps without an icon get a plain tile.
-Optional: to make the remote's **Home** button open Lumen, see the TV scripts under [tools/tv/](tools/tv/).
+Optional: see [Native Home selection](docs/native-home.md) for supported firmware, required metadata, and restoration steps.
+The v1.0.9 package does not contain the required Home category. The existing redirect scripts are under [tools/tv/](tools/tv/).
 
 ## How to build it
 
@@ -69,7 +70,9 @@ ares-setup-device           # add your TV as "lgtv" (developer mode on, or roote
 npx -p @webos-tools/cli ares-install --device lgtv build/*.ipk
 ```
 
-To make Home open Lumen, copy `tools/tv/watch.sh` to `/var/lib/homehook/` and `tools/tv/60-homehook` to `/var/lib/webosbrew/init.d/` on the TV.
+For native Home selection, follow [this procedure](docs/native-home.md). Installation alone does not change the default Home app.
+
+For the existing redirect method, copy `tools/tv/watch.sh` to `/var/lib/homehook/` and `tools/tv/60-homehook` to `/var/lib/webosbrew/init.d/` on the TV.
 To undo it, delete the hook file and stop `watch.sh`.
 
 ## Credits
