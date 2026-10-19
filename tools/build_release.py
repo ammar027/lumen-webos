@@ -4,6 +4,7 @@ then: python3 tools/build_release.py   -> release/com.ammar027.lumen_<version>_a
 Differences from your own build: no third-party app logos/icon tiles (apps without an icon get a plain tile), and five public-domain paintings
 (Cleveland Museum of Art, CC0) as the bundled wallpapers instead of photographs from Reddit."""
 import glob, json, os, re, shutil, subprocess, sys, urllib.parse
+from release_checksums import write_checksums
 ROOT = os.path.expanduser('~/Developer/webos-launcher-tvos')
 APP = f'{ROOT}/app'
 REL = '/tmp/lumen-release'
@@ -48,6 +49,9 @@ for cmd in ('build', 'package'):
     r = subprocess.run(['npm', 'run', cmd], cwd=A, capture_output=True, text=True)
     if r.returncode: print(r.stdout[-1500:], r.stderr[-1500:]); sys.exit(1)
 os.makedirs(f'{ROOT}/release', exist_ok=True)
+checksums = f'{ROOT}/release/SHA256SUMS.txt'
+if os.path.exists(checksums): os.remove(checksums)
 for f in glob.glob(f'{ROOT}/release/*.ipk'): os.remove(f)
 for f in glob.glob(f'{A}/build/*.ipk'): shutil.copy(f, f'{ROOT}/release/')
+print(write_checksums(f'{ROOT}/release'))
 print(glob.glob(f'{ROOT}/release/*.ipk'))
