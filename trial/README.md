@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.10), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.11), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -92,7 +92,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.10_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.11_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -121,7 +121,8 @@ It checks icon chunking/cache behavior, grid editing and folders, photo-frame wa
 handling, text geometry, settings errors, stale reads, outside setting changes,
 active versus last-used inputs and light appearance. Rendered-pixel checks exercise
 volume fill visibility at 25/50/75, plus empty/full geometry, focused and unfocused
-in both appearances. Remote volume changes retain focus while updating the fill.
+in both appearances. Remote volume changes retain focus while updating the fill. The focused slider
+shares the other controls' background/text colors, including its label and icon.
 Artifacts go to the ignored
 `.trial-evidence/` directory. Set `CHROMIUM_PATH` to use an existing Chromium binary
 instead of Playwright's downloaded browser.
@@ -184,7 +185,16 @@ regression test failed on the old styling and passes with this correction at
 focus. Panel, visual and navigation-audio suites, both production builds and both
 IPK packages passed. Native LG checks verified live focused changes, both
 appearances, installed bundle/cue hashes, restored volume and unchanged preferences
-and sound settings. Menu opening/closing remains quiet.
+and sound settings. The owner confirmed the fill update, but found the outline-only
+focus treatment too subdued. Menu opening/closing remains quiet.
+
+Version 0.3.11 restores the same solid focus highlight used by the other controls,
+with an opposing tint for the progress fill. Slider labels and speaker icons inherit
+the focused foreground in both appearances. The new focus comparison failed against
+0.3.10's subdued appearance, then passed with the shared highlight while retaining
+all progress-contrast checks. Native LG checks compared Volume with selected Audio,
+verified focused volume edits, label/icon colors, both appearances, installed hashes
+and preserved preferences/audio settings, restoring the current volume afterward.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

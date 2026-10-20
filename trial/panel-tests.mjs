@@ -14,7 +14,11 @@ const volumeAppearance=async(value,focused,theme)=>{
  assert(Math.abs(ratio-value/100)<.005,'volume fill must match its number');
  assert.equal(await slider.getAttribute('aria-valuenow'),String(value));
  assert.equal(await slider.evaluate(e=>e.classList.contains('surface-button--focused')),focused);
- if(value===0||value===100)return;
+ const focusStyle=await slider.evaluate(e=>({background:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color}));
+ const contents=await slider.evaluate(e=>({text:getComputedStyle(e.querySelector('.cc__slidertext')).color,icon:getComputedStyle(e.querySelector('svg')).stroke}));
+ assert.equal(contents.text,focusStyle.color,'Volume label must follow the control text contrast');
+ assert.equal(contents.icon,focusStyle.color,'Volume icon must follow the control text contrast');
+ if(value===0||value===100)return focusStyle;
  const png=await slider.screenshot();
  const pixels=await page.evaluate(url=>new Promise(resolve=>{
   const image=new Image();image.onload=()=>{
@@ -27,6 +31,7 @@ const volumeAppearance=async(value,focused,theme)=>{
  const difference=Math.max(...pixels[0].map((n,i)=>Math.abs(n-pixels[1][i])));
  assert(difference>=15,`${theme} volume ${value}, focused=${focused}: fill and track must remain visibly different (${difference})`);
  if(value===50&&focused)await capture('volume-'+theme);
+ return focusStyle;
 };
 const fit=async()=>{const bad=await page.locator('.input-card__name,.input-card__detail,.input-card__status,.cc__name,.cc__sub,.choice__label,.choice__detail').evaluateAll(es=>es.filter(e=>{if(!e.getClientRects().length)return false;const p=e.closest('button');const a=e.getBoundingClientRect(),b=p.getBoundingClientRect();return a.left<b.left-1||a.right>b.right+1||a.top<b.top-1||a.bottom>b.bottom+1||e.scrollWidth>e.clientWidth+1;}).map(e=>e.textContent));assert.deepEqual(bad,[],'all text must fit its control');};
 try{
@@ -86,16 +91,18 @@ try{
   for(const value of [0,25,50,75,100]){
    await page.evaluate(value=>{tvFixture.volume=value;document.dispatchEvent(new Event('visibilitychange'));},value);
    await page.waitForFunction(value=>document.querySelector('.cc__num').textContent===String(value),value);
-   await page.locator('.cc__slider').hover();await page.waitForTimeout(220);await volumeAppearance(value,true,theme);
+   await page.locator('.cc__slider').hover();await page.waitForTimeout(220);const focusStyle=await volumeAppearance(value,true,theme);
    if(value===50){
     await page.keyboard.press('ArrowLeft');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='48');await volumeAppearance(48,true,theme);
     await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='50');await volumeAppearance(50,true,theme);
    }
    await page.locator('.cc__audio').hover();await page.waitForTimeout(220);await volumeAppearance(value,false,theme);
+   const otherFocusStyle=await page.locator('.cc__audio').evaluate(e=>({background:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color}));
+   assert.deepEqual(focusStyle,otherFocusStyle,'Volume must retain the same strong focus highlight and text contrast as other controls');
   }
  }
  await page.evaluate(()=>{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');tvFixture.volume=22;document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='22');
- checks.push('Volume fill matches 0/25/50/75/100 and remains visibly distinct while focused/unfocused in both appearances; remote volume edits update without moving focus');
+ checks.push('Volume retains the shared strong focus highlight, fill matches 0/25/50/75/100 and remains distinct in both appearances; remote volume edits update without moving focus');
  await fit();await capture('controls');assert.equal(await page.locator('[data-control=picture]').innerText(),'Picture\nStandard');
  await page.locator('[data-control=picture]').click();await page.waitForSelector('.choice-list');assert.deepEqual(await page.locator('.choice__label').allTextContents(),['Standard','Cinema']);
  assert.equal(await page.locator('[aria-selected=true] .choice__label').innerText(),'Standard');assert.equal(await page.evaluate(()=>tvFixture.writes.filter(x=>x.field==='picture').length),0);checks.push('Opening choices makes no change and filters unavailable or unsafe modes');
