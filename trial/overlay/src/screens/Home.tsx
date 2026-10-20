@@ -97,7 +97,7 @@ export function Home ({rows, topItems, menuItems, active, navigationSounds = 'of
 
  useLayoutEffect(() => {
   setNavigationSoundMode(active ? navigationSounds : 'off');
-  const hidden = () => {if(document.hidden)stopNavigationSound();};
+  const hidden = () => {if(document.hidden)stopNavigationSound();else setNavigationSoundMode(active ? navigationSounds : 'off');};
   document.addEventListener('visibilitychange',hidden);
   return () => {setNavigationSoundMode('off');document.removeEventListener('visibilitychange',hidden);};
  },[active,navigationSounds]);

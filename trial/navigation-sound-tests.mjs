@@ -5,7 +5,7 @@ import {openBrowser,seedPreview} from './browser.mjs';
 const browser=await openBrowser(),page=await browser.newPage({viewport:{width:1920,height:1080}});
 await seedPreview(page);
 const errors=[],checks=[];page.on('pageerror',e=>errors.push(e.message));
-await page.addInitScript(()=>{
+const audioFixture=()=>{
  const probe=window.audioProbe={starts:[],active:0,maxActive:0,contexts:[],peak:0,buffers:0,resumeDelay:0,initialState:'running',unavailable:false};
  window.AudioContext=class {
   constructor(){if(probe.unavailable)throw new Error('Unsupported audio');this.state=probe.initialState;this.currentTime=1;this.sampleRate=48000;this.destination={};probe.contexts.push(this);}
@@ -14,7 +14,8 @@ await page.addInitScript(()=>{
   suspend(){this.state='suspended';return Promise.resolve();}
   resume(){return new Promise(resolve=>setTimeout(()=>{this.state='running';resolve();},probe.resumeDelay));}
  };
-});
+};
+await page.addInitScript(audioFixture);
 const count=()=>page.evaluate(()=>audioProbe.starts.length);
 const openOptions=async()=>{await page.locator('.topbar .pill').nth(1).click();await page.locator('[data-control=settings]').click();await page.getByText('Options',{exact:true}).hover();};
 const option=()=>page.locator('.option').filter({has:page.getByText('Navigation sounds',{exact:true})});
@@ -29,11 +30,46 @@ try {
  await page.keyboard.press('ArrowDown');await page.waitForTimeout(160);const repeated=await count();
  await page.evaluate(async()=>{for(let i=0;i<16;i++){window.dispatchEvent(new KeyboardEvent('keydown',{key:i%2?'ArrowLeft':'ArrowRight',keyCode:i%2?37:39,bubbles:true}));await new Promise(resolve=>setTimeout(resolve,50));}});
  const stats=await page.evaluate(()=>({starts:audioProbe.starts,maxActive:audioProbe.maxActive,peak:audioProbe.peak,buffers:audioProbe.buffers}));
- assert(stats.starts.length-repeated<=7);assert.equal(stats.maxActive,1);assert.equal(stats.buffers,1);assert(stats.peak>0&&stats.peak<.035);assert(stats.starts.every((n,i)=>!i||n-stats.starts[i-1]>=119));checks.push('Held movement is rate limited, uses one cached quiet buffer and never overlaps');
- await openOptions();const inactive=await count();await page.keyboard.press('ArrowDown');assert.equal(await count(),inactive);await option().click();assert.equal(await option().locator('.option__value').innerText(),'Off');await home();await page.keyboard.press('ArrowRight');assert.equal(await count(),inactive);checks.push('Settings navigation is silent; Off immediately stops playback');
+ assert.equal(stats.starts.length-repeated,16);assert.equal(stats.maxActive,1);assert.equal(stats.buffers,1);assert(stats.peak>0&&stats.peak<=.02521);assert(stats.starts.some((n,i)=>i&&n-stats.starts[i-1]<119));await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'running');checks.push('Every one of 16 rapid accepted moves plays; one quiet buffer stays warm without overlap or an extra sound throttle');
+ await openOptions();const inactive=await count();await page.keyboard.press('ArrowDown');assert.equal(await count(),inactive);await option().click();assert.equal(await option().locator('.option__value').innerText(),'Off');await home();await page.keyboard.press('ArrowRight');assert.equal(await count(),inactive);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'suspended');checks.push('Settings navigation is silent; Off immediately stops and suspends playback');
  await openOptions();await option().click();await home();await page.reload();await page.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);assert.equal(await count(),0);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('launcher-config-v2')).navigationSounds),'soft');checks.push('Soft survives reload while initial focus restoration is silent');
  await page.evaluate(()=>{audioProbe.contexts[0].state='suspended';audioProbe.resumeDelay=160;});await page.keyboard.press('ArrowRight');await page.locator('.topbar .pill').nth(1).click();await page.waitForTimeout(220);assert.equal(await count(),0);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'suspended');await page.keyboard.press('Escape');checks.push('Delayed audio unlock is discarded and suspended after leaving Home');
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);await page.evaluate(()=>{audioProbe.contexts[0].currentTime=0;});await page.keyboard.press('ArrowRight');await page.waitForTimeout(150);assert.equal(await count(),0);await page.evaluate(()=>{audioProbe.contexts[0].currentTime=1;});await page.keyboard.press('ArrowLeft');await page.waitForFunction(()=>audioProbe.starts.length===1);checks.push('A running context with a stalled startup clock warms silently without queuing a tick');
  await page.reload();await page.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);await page.evaluate(()=>{audioProbe.unavailable=true;});await page.keyboard.press('ArrowRight');assert.equal(await count(),0);assert.equal(await page.locator('.trial-row').first().locator('.tile').nth(1).getAttribute('class').then(s=>s.includes('tile--focused')),true);checks.push('Unavailable audio does not block app navigation or produce errors');
+ // A bridge added after startup exercises the real Home/settings path without
+ // turning every other feature into a simulated TV.
+ const native=await browser.newPage({viewport:{width:1920,height:1080}});
+ await seedPreview(native);native.on('pageerror',e=>errors.push(e.message));
+ await native.goto(process.env.TRIAL_URL||'http://127.0.0.1:5173');await native.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);
+ await native.evaluate(()=>{
+  window.nativeProbe={calls:[],delay:3,fail:false,contexts:0};
+  window.AudioContext=class {constructor(){nativeProbe.contexts++;throw new Error('Native should not create Web Audio');}};
+  window.PalmServiceBridge=class {
+   cancel(){this.cancelled=true;}
+   call(uri,json){const p=JSON.parse(json),probe=nativeProbe;let r={returnValue:false};
+    if(uri.endsWith('/playSound')){probe.calls.push({at:performance.now(),...p});r={returnValue:!probe.fail};}
+    setTimeout(()=>{if(!this.cancelled)this.onservicecallback(JSON.stringify(r));},probe.delay);
+   }
+  };
+ });
+ await native.locator('.topbar .pill').nth(1).click();await native.locator('[data-control=settings]').click();await native.getByText('Options',{exact:true}).hover();
+ await native.locator('.option').filter({has:native.getByText('Navigation sounds',{exact:true})}).click();await native.keyboard.press('Escape');
+ await native.waitForFunction(()=>nativeProbe.calls.length===1);await native.waitForTimeout(30);
+ assert((await native.evaluate(()=>nativeProbe.calls[0].fileName)).endsWith('/sounds/navigation-ready.pcm'));
+ await native.locator('.trial-row .tile').nth(1).hover();await native.mouse.move(0,0);
+ await native.evaluate(async()=>{nativeProbe.delay=160;for(let i=0;i<16;i++){window.dispatchEvent(new KeyboardEvent('keydown',{key:i%2?'ArrowLeft':'ArrowRight',keyCode:i%2?37:39,bubbles:true}));await new Promise(r=>setTimeout(r,50));}});
+ const nativeStats=await native.evaluate(()=>({calls:nativeProbe.calls,contexts:nativeProbe.contexts}));
+ assert.equal(nativeStats.calls.length,17);assert.equal(nativeStats.contexts,0);assert(nativeStats.calls.slice(1).every(c=>c.sink==='defaultapp'&&c.sampleRate===48000&&c.channels===1&&c.format==='PA_SAMPLE_S16LE'&&c.fileName.endsWith('/sounds/navigation-click.pcm')));
+ await native.locator('.topbar .pill').nth(1).click();const inactiveNative=await native.evaluate(()=>nativeProbe.calls.length);await native.keyboard.press('ArrowDown');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),inactiveNative);await native.close();
+ checks.push('Native PCM probes silently, dispatches all 16 rapid moves despite pending responses, creates no Web Audio context and stays silent in panels');
+ const fallback=await browser.newPage({viewport:{width:1920,height:1080}});
+ await seedPreview(fallback);await fallback.addInitScript(audioFixture);fallback.on('pageerror',e=>errors.push(e.message));
+ await fallback.goto(process.env.TRIAL_URL||'http://127.0.0.1:5173');await fallback.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);
+ await fallback.evaluate(()=>{window.PalmServiceBridge=class {cancel(){this.cancelled=true;}call(uri){setTimeout(()=>{if(!this.cancelled)this.onservicecallback(uri.endsWith('/playSound')?'{"returnValue":false,"errorCode":AUDIOD_ERRORCODE_INVALID_PARAMS}':JSON.stringify({returnValue:false}));},3);}};});
+ await fallback.locator('.topbar .pill').nth(1).click();await fallback.locator('[data-control=settings]').click();await fallback.getByText('Options',{exact:true}).hover();await fallback.locator('.option').filter({has:fallback.getByText('Navigation sounds',{exact:true})}).click();await fallback.keyboard.press('Escape');
+ await fallback.waitForFunction(()=>audioProbe.contexts.length===1);assert.equal(await fallback.evaluate(()=>audioProbe.starts.length),0);
+ await fallback.locator('.trial-row .tile').first().hover();await fallback.keyboard.press('ArrowRight');assert.equal(await fallback.evaluate(()=>audioProbe.starts.length),1);await fallback.close();
+ checks.push('An unsupported native sink with a malformed firmware error falls back silently; future moves still play through Web Audio');
+ const pcm=fs.readFileSync('trial/overlay/public/sounds/navigation-click.pcm');assert.equal(pcm.length,2496);let pcmPeak=0;for(let i=0;i<pcm.length;i+=2)pcmPeak=Math.max(pcmPeak,Math.abs(pcm.readInt16LE(i))/32767);assert(pcmPeak<=.02522&&pcmPeak>.0251);assert(fs.readFileSync('trial/overlay/public/sounds/navigation-ready.pcm').every(n=>n===0));
  assert.deepEqual(errors,[]);const result={passed:true,checks,errors};fs.writeFileSync('.trial-evidence/navigation-sound-results.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));
 } finally {await browser.close();}

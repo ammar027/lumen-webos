@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.6), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.7), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -47,14 +47,19 @@ own installed apps. Existing trial preferences continue to load from localStorag
 - Five apps on the first row; Down expands a five-column grid and Back collapses it.
   Hold OK retains app moving, folders and context menus. Recent apps are optional:
   Off, Not on Home, or All recent, without deleting the history.
-- Optional Navigation sounds (Off / Soft) add an original, quiet 45 ms tick only
-  when the remote moves between app tiles on Home. New installs and existing
-  preferences default to Off. Pointer hover, blocked movement and focus restoration
-  stay silent. Repeats are rate limited, playback never overlaps, and leaving Home
-  cancels pending audio. One cached Web Audio buffer avoids media-element conflicts
-  with video wallpapers. The engine warms silently before accepting a tick, and
-  suspends after playback ends and a short inactivity period. No system volume
-  or mute setting is changed.
+- Optional Navigation sounds (Off / Soft) add an original, quiet 26 ms brushed
+  click only when the remote moves between app tiles on Home. New installs and
+  existing preferences default to Off. Pointer hover, blocked movement and focus
+  restoration stay silent. Each accepted tile movement dispatches immediately,
+  without a second sound rate limit or response queue. Compatible webOS TVs use
+  native PCM playback through `com.webos.service.audio/playSound` with the
+  commercial TV's `defaultapp` sink, checked once with a bundled silent sample.
+  Other environments fall back to one cached Web Audio buffer; its context stays
+  warm while Home is active and suspends on exit, background or Off. An unfinished
+  fallback click is replaced by the next move. Native one-shot clicks are 26 ms;
+  leaving Home prevents new requests. No system volume or mute setting is changed.
+  The bundled PCM is original synthesized audio; rebuild it with
+  `python3 trial/generate-navigation-sound.py`.
 - Native icons are read in bounded chunks, with independent failure handling and
   cache invalidation by path, file size and modification time. A failed large icon
   no longer discards every other app's icon.
@@ -78,7 +83,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.6_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.7_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -110,7 +115,7 @@ active versus last-used inputs and light appearance. Artifacts go to the ignored
 instead of Playwright's downloaded browser.
 
 The navigation-sound checks separately cover migration/default Off, Soft persistence,
-actual focus changes, silent pointer/boundary behavior, rate limiting, no overlap,
+actual focus changes, silent pointer/boundary behavior, every rapid accepted move,
 Settings cancellation, delayed audio unlock, a stalled startup audio clock and
 unavailable audio. They instrument an audio fixture; perceived loudness and physical
 output require a TV listening check.
@@ -123,11 +128,16 @@ and restored sound, verified the sleep countdown and Off state, and routed an HD
 input. Public fixture tests are separate from that physical evidence; the public
 build uses generic cards and gradients instead of the owner's local artwork.
 
-The 0.3.6 audio update was also installed on that TV. Native Web Audio nodes started
-and completed both 45 ms ticks without overlap, blocked arrows stayed silent, Off
-suppressed playback, and the engine suspended after inactivity. The real Settings
-control persisted Soft while other saved preferences were preserved. Physical
-loudness and perceived latency are awaiting the owner's listening check.
+The owner evaluated 0.3.6 and accepted the volume but reported an unpleasant sound,
+missed rapid clicks and perceptible delay. Version 0.3.7 replaces the tonal tick,
+removes the 120 ms sound cutoff and per-tap suspend/resume cycle, and uses native PCM
+on compatible TVs to avoid webOS 5's Web Audio playback path. On the same LG, 12
+rapid CDP remote-key presses each dispatched one native click.
+Dispatch took 0.7-1.7 ms from key handling; the service acknowledged requests in
+9.7-42.2 ms. No Web Audio context was created. Blocked arrows, panels and Off stayed
+silent, Soft stayed ready after a pause, and preferences and TV volume were
+unchanged. Speaker latency and perceived sound character require a listening check;
+service response timing alone is not a speaker measurement.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental
