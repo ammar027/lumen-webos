@@ -221,6 +221,9 @@ remote edits preserved focus and the pill/panel geometry matched 0.3.12 exactly.
 Installed bundle/cue hashes matched; preferences and sound settings were preserved
 and the starting volume was restored.
 
+The owner subsequently accepted the 0.3.13 volume pill design, including its bright
+left fill, translucent empty region, separate focus rim and unchanged geometry.
+
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental
 trial for upstream review, not a replacement for the existing release pipeline.
