@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.8), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.9), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -54,9 +54,12 @@ own installed apps. Existing trial preferences continue to load from localStorag
   Hold OK retains app moving, folders and context menus. Recent apps are optional:
   Off, Not on Home, or All recent, without deleting the history.
 - Optional Navigation sounds (Off / Soft) use a quiet, original rounded cue for
-  remote movement between Home app tiles. New installs and existing preferences
-  default to Off. Pointer hover, blocked movement and focus restoration stay quiet.
-  Each accepted move dispatches immediately, without an extra rate limit or a
+  remote movement between Home app tiles, input cards, Control Center controls and
+  its choice lists. New installs and existing preferences
+  default to Off. Pointer hover, blocked movement, initial/restored focus, panel
+  opening/closing and volume adjustments stay quiet. Settings and its restart
+  confirmation remain silent.
+  Each accepted focus move dispatches immediately, without an extra rate limit or a
   response queue. Compatible TVs use native PCM after a silent capability check;
   other environments use Web Audio. Both load the same packaged mono 48 kHz S16LE
   file, so local sound overrides remain consistent between playback paths.
@@ -89,7 +92,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.8_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.9_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -121,8 +124,9 @@ active versus last-used inputs and light appearance. Artifacts go to the ignored
 instead of Playwright's downloaded browser.
 
 The navigation-sound checks separately cover migration/default Off, Soft persistence,
-actual focus changes, every rapid accepted move, quiet pointer/boundary behavior,
-one low-level keepalive, panel readiness, Off/background/photo-frame cleanup, rapid
+actual focus changes, every rapid accepted move, Inputs / Control Center and all
+five choice lists, quiet opening/Back/pointer/boundary/volume behavior, Settings and
+restart-confirmation silence, one low-level keepalive, Off/background/photo-frame cleanup, rapid
 Off/Soft changes during resume, packaged PCM loading, delayed audio unlock, a stalled
 startup audio clock and unavailable audio. They instrument an audio fixture; perceived loudness and physical
 output require a TV listening check.
@@ -155,6 +159,17 @@ Native 0.3.8 checks then verified the installed bundle and selected-cue hashes,
 panel readiness and Off cleanup. Saved preferences, volume, processing and output
 settings were preserved. The owner confirmed the live selected cue and keepalive
 before packaging; a separate post-install listening check is not claimed.
+
+Version 0.3.9 extends the same cue to remote focus movement across input cards,
+Control Center controls and its Sound, Picture, Sleep timer, Photo frame and Audio
+choice lists. Audio lifecycle ownership now lives in the app, so all those panels
+share the existing preference, backend and single keepalive. Initial focus, opening,
+Back, pointer hover, blocked arrows and volume changes stay quiet. The six browser
+suites passed, along with public/private production builds and IPK packaging.
+Native checks on the same LG verified each panel path, all five lists, rapid remote
+movement, one cue per focus change and one shared readiness stream. Installed bundle
+and selected-cue hashes matched, and saved preferences, volume and audio settings
+were preserved. Panel listening acceptance is tracked separately from these API checks.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

@@ -1,6 +1,7 @@
 import type {ComponentChildren} from 'preact';
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {useKeys, clamp} from '../hooks/useKeys';
+import {playNavigationTick} from '../lib/navigationSound';
 import {CheckMark, Glyph} from './Glyph';
 import {t as tr} from '../lib/i18n';
 
@@ -23,10 +24,15 @@ export function ChoiceList ({title, choices, initialId, busy=false, message, onC
  const view = useRef<HTMLDivElement>(null);
  const selected = clamp(index,0,Math.max(0,choices.length-1));
  const choose = (i:number) => {const c=choices[i];if(c && !busy && !c.disabled)onChoose(c.id);};
+ const move = (next:number) => {
+  const target=clamp(next,0,Math.max(0,choices.length-1));
+  setIndex(target);
+  if(choices[target]&&target!==selected)playNavigationTick();
+ };
  useKeys(key => {
   if(key === 'back')onBack();
-  else if(key === 'up')setIndex(i => clamp(i-1,0,choices.length-1));
-  else if(key === 'down')setIndex(i => clamp(i+1,0,choices.length-1));
+  else if(key === 'up')move(selected-1);
+  else if(key === 'down')move(selected+1);
   else if(key === 'enter')choose(selected);
   return true;
  });

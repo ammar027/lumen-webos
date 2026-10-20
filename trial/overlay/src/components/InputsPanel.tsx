@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'preact/hooks';
 import {useKeys, clamp} from '../hooks/useKeys';
 import {inputName, inputPort, listInputs, type InputSource} from '../lib/inputs';
 import {isWebOS} from '../lib/luna';
+import {playNavigationTick} from '../lib/navigationSound';
 import {launchApp} from '../lib/launch';
 import {CheckMark, Glyph, type GlyphName} from './Glyph';
 import {Surface} from './Surface';
@@ -27,7 +28,11 @@ export function InputsPanel ({inputs,sourceIds,lastInput,onLastInput,onClose,onE
   return ()=>{alive=false;};
  },[]);
  useEffect(()=>()=>{life.current.alive=false;},[]);
- const move=(next:number)=>{touched.current=true;setIndex(clamp(next,0,items.length-1));};
+ const move=(next:number,remote=false)=>{
+  const target=clamp(next,0,Math.max(0,items.length-1));
+  touched.current=true;setIndex(target);
+  if(remote&&items[target]&&target!==selected)playNavigationTick();
+ };
  const activate=async(i:number)=>{
   const item=items[i],state=life.current;if(!item||state.writing)return;
   state.writing=true;setBusy(true);
@@ -37,10 +42,10 @@ export function InputsPanel ({inputs,sourceIds,lastInput,onLastInput,onClose,onE
  };
  useKeys(key=>{
   if(key==='back')onClose();
-  else if(key==='left'&&selected%2===1)move(selected-1);
-  else if(key==='right'&&selected%2===0&&selected+1<items.length)move(selected+1);
-  else if(key==='up')move(selected-2);
-  else if(key==='down'&&selected+2<items.length)move(selected+2);
+  else if(key==='left'&&selected%2===1)move(selected-1,true);
+  else if(key==='right'&&selected%2===0&&selected+1<items.length)move(selected+1,true);
+  else if(key==='up')move(selected-2,true);
+  else if(key==='down'&&selected+2<items.length)move(selected+2,true);
   else if(key==='enter')activate(selected);
   return true;
  });

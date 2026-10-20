@@ -23,6 +23,37 @@ const count=()=>page.evaluate(()=>audioProbe.starts.length);
 const openOptions=async()=>{await page.locator('.topbar .pill').nth(1).click();await page.locator('[data-control=settings]').click();await page.getByText('Options',{exact:true}).hover();};
 const option=()=>page.locator('.option').filter({has:page.getByText('Navigation sounds',{exact:true})});
 const home=async()=>{await page.keyboard.press('Escape');await page.waitForSelector('.settings',{state:'detached'});await page.mouse.move(0,0);};
+// Exercise the visible panel handlers, including their shared choice lists.
+const panelFeedback=async(target,cueCount,enabled=true)=>{
+ let expected=await cueCount();
+ const check=async()=>assert.equal(await cueCount(),expected);
+ const key=async(name,moved=false)=>{await target.keyboard.press(name);if(moved&&enabled)expected++;await check();};
+ await target.locator('.topbar .pill').first().click();await target.waitForSelector('.input-card');await check();
+ await target.locator('.input-card').first().hover();await check();
+ await key('ArrowLeft');await key('ArrowUp');
+ for(const name of ['ArrowRight','ArrowDown','ArrowUp','ArrowLeft'])await key(name,true);
+ await key('Escape');
+ await target.locator('.topbar .pill').nth(1).click();await target.waitForFunction(()=>/^\d+$/.test(document.querySelector('.cc__num').textContent));await check();
+ await target.locator('.cc__slider').hover();await key('ArrowUp');
+ const volume=await target.locator('.cc__num').innerText();
+ await key('ArrowLeft');await target.waitForFunction(v=>document.querySelector('.cc__num').textContent===String(Number(v)-2),volume);
+ await key('ArrowRight');await target.waitForFunction(v=>document.querySelector('.cc__num').textContent===v,volume);
+ for(const name of ['ArrowDown','ArrowRight','ArrowDown','ArrowLeft'])await key(name,true);
+ // A burst of separate presses has one cue for every visible focus move.
+ for(let i=0;i<12;i++)await key(i%2?'ArrowLeft':'ArrowRight',true);
+ for(const id of ['sound','picture','sleep','photo']){
+  await target.locator('[data-control='+id+']').hover();await check();
+  await key('Enter');await target.waitForSelector('.choice-list');await check();
+  await target.locator('.choice').first().hover();await check();
+  await key('ArrowUp');await key('ArrowDown',true);await key('ArrowUp',true);
+  await key('Escape');await target.waitForSelector('.panel--cc');await check();
+ }
+ await target.locator('.cc__audio').hover();await key('Enter');await target.waitForSelector('.choice-list');await check();
+ await target.locator('.choice').first().hover();await key('ArrowDown',true);await key('ArrowDown');await key('ArrowUp',true);
+ await key('Escape');await key('Escape');await target.mouse.move(0,0);
+ assert.equal(await target.evaluate(()=>audioProbe.contexts.length),1);
+ assert.equal(await target.evaluate(()=>audioProbe.activeLoops),enabled?1:0);
+};
 try {
  await page.goto(process.env.TRIAL_URL||'http://127.0.0.1:5173');await page.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);
  await page.keyboard.press('ArrowRight');assert.equal(await page.evaluate(()=>audioProbe.contexts.length),0);
@@ -34,7 +65,9 @@ try {
  await page.evaluate(async()=>{for(let i=0;i<16;i++){window.dispatchEvent(new KeyboardEvent('keydown',{key:i%2?'ArrowLeft':'ArrowRight',keyCode:i%2?37:39,bubbles:true}));await new Promise(resolve=>setTimeout(resolve,50));}});
  const stats=await page.evaluate(()=>({starts:audioProbe.starts,maxActive:audioProbe.maxActive,peak:audioProbe.peak,buffers:audioProbe.buffers}));
  assert.equal(stats.starts.length-repeated,16);assert.equal(stats.maxActive,1);assert.equal(stats.buffers,2);assert(stats.peak>0&&stats.peak<=.02521);assert(stats.starts.some((n,i)=>i&&n-stats.starts[i-1]<119));await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'running');assert.equal(await page.evaluate(()=>audioProbe.activeLoops),1);assert.equal(await page.evaluate(()=>audioProbe.maxActiveLoops),1);assert((await page.evaluate(()=>audioProbe.loops)).every(l=>l.peak>0&&l.peak<=.000101));checks.push('Every rapid accepted move plays; one inaudible nonzero keepalive stays warm without cue overlap or an extra throttle');
- await openOptions();const inactive=await count();await page.keyboard.press('ArrowDown');assert.equal(await count(),inactive);await option().click();assert.equal(await option().locator('.option__value').innerText(),'Off');await home();await page.keyboard.press('ArrowRight');assert.equal(await count(),inactive);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'suspended');checks.push('Settings navigation is silent; Off immediately stops and suspends playback');
+ await panelFeedback(page,count);checks.push('Inputs, Control Center and all five choice lists play once per actual remote focus change, including rapid presses; opening, Back, hover, boundaries and volume edits stay quiet');
+ await openOptions();const inactive=await count();await page.keyboard.press('ArrowDown');assert.equal(await count(),inactive);await page.locator('.option').filter({has:page.getByText('Restart TV',{exact:true})}).click();await page.keyboard.press('ArrowDown');assert.equal(await count(),inactive);await page.keyboard.press('Escape');await home();await openOptions();await option().click();assert.equal(await option().locator('.option__value').innerText(),'Off');await home();await page.keyboard.press('ArrowRight');assert.equal(await count(),inactive);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'suspended');checks.push('Settings navigation is silent; Off immediately stops and suspends playback');
+ await panelFeedback(page,count,false);checks.push('Off silences all panel moves and choices without restarting the keepalive');
  await openOptions();await option().click();await home();await page.reload();await page.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);assert.equal(await count(),0);assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('launcher-config-v2')).navigationSounds),'soft');checks.push('Soft survives reload while initial focus restoration is silent');
  await page.evaluate(async()=>{const m=await import('/src/lib/navigationSound.ts');audioProbe.contexts[0].state='suspended';audioProbe.resumeDelay=160;m.setNavigationSoundMode('off');m.setNavigationSoundMode('soft');m.setNavigationSoundMode('off');m.setNavigationSoundMode('soft');});await page.waitForTimeout(220);assert.equal(await page.evaluate(()=>audioProbe.activeLoops),1);assert.equal(await page.evaluate(()=>audioProbe.maxActiveLoops),1);assert.equal(await count(),0);checks.push('Fast Off/Soft changes during resume retain exactly one keepalive without an audible cue');
  await page.evaluate(()=>{audioProbe.contexts[0].state='suspended';audioProbe.resumeDelay=160;});await page.keyboard.press('ArrowRight');await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});await page.waitForTimeout(220);assert.equal(await count(),0);assert.equal(await page.evaluate(()=>audioProbe.contexts[0].state),'suspended');assert.equal(await page.evaluate(()=>audioProbe.activeLoops),0);await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});checks.push('Background stops the keepalive and discards delayed cue unlocks; foreground resumes silently');
@@ -64,10 +97,12 @@ try {
  await native.evaluate(async()=>{nativeProbe.delay=160;for(let i=0;i<16;i++){window.dispatchEvent(new KeyboardEvent('keydown',{key:i%2?'ArrowLeft':'ArrowRight',keyCode:i%2?37:39,bubbles:true}));await new Promise(r=>setTimeout(r,50));}});
  const nativeStats=await native.evaluate(()=>({calls:nativeProbe.calls,contexts:nativeProbe.contexts,loops:audioProbe.activeLoops,cues:audioProbe.starts.length}));
  assert.equal(nativeStats.calls.length,17);assert.equal(nativeStats.contexts,1);assert.equal(nativeStats.loops,1);assert.equal(nativeStats.cues,0);assert(nativeStats.calls.slice(1).every(c=>c.sink==='defaultapp'&&c.sampleRate===48000&&c.channels===1&&c.format==='PA_SAMPLE_S16LE'&&c.fileName.endsWith('/sounds/navigation-focus-v1.pcm')));
- await native.locator('.topbar .pill').nth(1).click();const inactiveNative=await native.evaluate(()=>nativeProbe.calls.length);await native.keyboard.press('ArrowDown');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),inactiveNative);assert.equal(await native.evaluate(()=>audioProbe.activeLoops),1);
+ await native.locator('.topbar .pill').nth(1).click();const inactiveNative=await native.evaluate(()=>nativeProbe.calls.length);await native.keyboard.press('ArrowDown');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),inactiveNative+1);assert.equal(await native.evaluate(()=>audioProbe.activeLoops),1);
+ await native.keyboard.press('ArrowUp');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),inactiveNative+2);await native.keyboard.press('ArrowUp');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),inactiveNative+2);
+ await native.locator('[data-control=photo]').click();const detailNative=await native.evaluate(()=>nativeProbe.calls.length);await native.keyboard.press('ArrowDown');await native.keyboard.press('ArrowUp');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),detailNative+2);await native.keyboard.press('Escape');assert.equal(await native.evaluate(()=>nativeProbe.calls.length),detailNative+2);
  await native.locator('[data-control=photo]').click();await native.getByText('Start now',{exact:true}).click();await native.waitForSelector('.photo-frame');assert.equal(await native.evaluate(()=>audioProbe.activeLoops),0);assert.equal(await native.evaluate(()=>audioProbe.contexts[0].state),'suspended');
  await native.waitForTimeout(100);await native.keyboard.press('Escape');await native.waitForSelector('.photo-frame',{state:'detached'});assert.equal(await native.evaluate(()=>audioProbe.activeLoops),1);assert.equal(await native.evaluate(()=>audioProbe.starts.length),0);await native.close();checks.push('Photo frame suspends the keepalive; its wake key restores readiness without a focus cue');
- checks.push('Native PCM dispatches every rapid move while Web Audio supplies only a quiet keepalive; panels stay quiet and ready');
+ checks.push('Native PCM dispatches Home, Control Center and choice moves immediately while sharing one quiet Web Audio keepalive; opening and blocked moves stay silent');
  const fallback=await browser.newPage({viewport:{width:1920,height:1080}});
  await seedPreview(fallback);await fallback.addInitScript(audioFixture);fallback.on('pageerror',e=>errors.push(e.message));
  await fallback.goto(process.env.TRIAL_URL||'http://127.0.0.1:5173');await fallback.waitForFunction(()=>document.querySelectorAll('.trial-row .tile').length>10);

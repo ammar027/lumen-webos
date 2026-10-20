@@ -3,6 +3,7 @@ import {Glyph, type GlyphName} from './Glyph';
 import {ChoiceList, Surface, type Choice} from './Surface';
 import {useKeys, clamp} from '../hooks/useKeys';
 import {useTvControls} from '../hooks/useTvControls';
+import {playNavigationTick} from '../lib/navigationSound';
 import {PICTURE_LABEL,SOUND_LABEL,SLEEP_MINUTES,setPictureMode,setSoundMode,setSleepTimer,setVolume,setMuted,screenOff} from '../lib/tvcontrols';
 import {t as tr} from '../lib/i18n';
 
@@ -29,15 +30,19 @@ export function ControlCenter ({onClose,onError,onAction,idleMinutes,onIdleMinut
   else if(id==='screenoff'){screenOff().catch(()=>onError("Couldn't turn the screen off"));onClose();}
   else {setAudioMessage('');setDetail(id==='volume'?'audio':id);}
  };
+ const move=(row:number,col:number)=>{
+  if(row===pos.row&&col===pos.col)return;
+  setPos({row,col});playNavigationTick();
+ };
  useKeys(key=>{
   const cell=GRID[pos.row][pos.col];
   if(key==='back')onClose();
   else if(key==='enter')press(cell);
   else if(cell==='volume'&&(key==='left'||key==='right')){
-   if(key==='right'&&values.volume===100)setPos({row:0,col:1});
+   if(key==='right'&&values.volume===100)move(0,1);
    else adjustVolume((values.volume||0)+(key==='left'?-2:2));
-  } else if(key==='left'||key==='right')setPos(p=>({...p,col:clamp(p.col+(key==='left'?-1:1),0,1)}));
-  else if(key==='up'||key==='down')setPos(p=>({...p,row:clamp(p.row+(key==='up'?-1:1),0,GRID.length-1)}));
+  } else if(key==='left'||key==='right')move(pos.row,clamp(pos.col+(key==='left'?-1:1),0,1));
+  else if(key==='up'||key==='down')move(clamp(pos.row+(key==='up'?-1:1),0,GRID.length-1),pos.col);
   return true;
  },detail===null);
  const tile=(id:Cell,glyph:GlyphName,title:string,sub:string)=>

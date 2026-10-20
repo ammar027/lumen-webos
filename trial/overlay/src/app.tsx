@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'preact/hooks';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'preact/hooks';
 import {Home, type HomeRow} from './screens/Home';
 import {Settings, type SettingsTab, type WallpaperTab} from './screens/Settings';
 import type {WallpaperEntry} from './components/WallpaperPicker';
@@ -23,6 +23,7 @@ import {ControlCenter, type CenterAction} from './components/ControlCenter';
 import {InputsPanel} from './components/InputsPanel';
 import {ChoiceList} from './components/Surface';
 import {restartTv} from './lib/tvcontrols';
+import {setNavigationSoundActive, setNavigationSoundMode, stopNavigationSound} from './lib/navigationSound';
 import {readStatus} from './lib/status';
 import {CITIES, COUNTRIES} from './config/cities';
 import {readWeather} from './lib/weather';
@@ -74,6 +75,19 @@ export function App () {
 	const configRef = useRef(config);
 	configRef.current = config;
 	const toastTimer = useRef(0);
+
+ const navigationSoundMode = photoFrame ? 'off' : config.navigationSounds;
+ const navigationSoundActive = screen === 'home' && !photoFrame && !restartConfirm;
+ useLayoutEffect(() => {
+  setNavigationSoundMode(navigationSoundMode);
+  const hidden = () => {if(document.hidden)stopNavigationSound();else setNavigationSoundMode(navigationSoundMode);};
+  document.addEventListener('visibilitychange',hidden);
+  return () => {setNavigationSoundMode('off');document.removeEventListener('visibilitychange',hidden);};
+ },[navigationSoundMode]);
+ useLayoutEffect(() => {
+  setNavigationSoundActive(navigationSoundActive);
+  return () => setNavigationSoundActive(false);
+ },[navigationSoundActive]);
 
 	const showToast = useCallback((text: string, kind: ToastMessage['kind'] = 'info') => {
 		window.clearTimeout(toastTimer.current);
@@ -228,7 +242,7 @@ export function App () {
 
 	const options: OptionItem[] = useMemo(() => [
   {id:'recent-mode',label:'Recent apps',description:'Keep the app grid quiet, show only apps not already on Home, or show all recently opened apps.',value:config.recentMode !== 'off',valueText:config.recentMode === 'off' ? 'Off' : config.recentMode === 'unique' ? 'Not on Home' : 'All recent'},
-  {id:'navigation-sounds',label:'Navigation sounds',description:'A quiet tick when the remote moves between apps on Home. Pointer movement stays silent.',value:config.navigationSounds === 'soft',valueText:config.navigationSounds === 'soft' ? 'Soft' : 'Off'},
+  {id:'navigation-sounds',label:'Navigation sounds',description:'A quiet tick as the remote moves between Home apps, input cards and Control Center choices. Pointer movement and volume adjustments stay silent.',value:config.navigationSounds === 'soft',valueText:config.navigationSounds === 'soft' ? 'Soft' : 'Off'},
 		{
 			id: OPTION.useHomebrew,
 			label: 'Live app list via Homebrew Channel',
@@ -453,7 +467,7 @@ export function App () {
 	return (
 		<>
 			{/* Home stays mounted under Settings so it keeps its focus position. */}
-			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} navigationSounds={photoFrame ? 'off' : config.navigationSounds} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
+			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
 			{screen === 'settings' && <Settings tabs={tabs} wallpaper={wallpaper} options={options} active={!restartConfirm} onToggle={onToggle} onReorder={onReorder} onOption={onOption} onClose={() => setScreen('home')} />}
 			{controls && <ControlCenter
     idleMinutes={config.idleMinutes} inputCount={shownInputs.length} network={network} focusInputs={controlFocusInputs}

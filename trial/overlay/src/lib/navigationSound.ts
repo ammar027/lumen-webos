@@ -5,7 +5,7 @@ import {isWebOS, lunaCall} from './luna';
 export type NavigationSoundMode = 'off' | 'soft';
 type Backend = 'unknown' | 'probing' | 'native' | 'web';
 let enabled = false;
-let homeActive = false;
+let focusActive = false;
 let backend: Backend = 'unknown';
 let context: AudioContext | undefined;
 let buffer: AudioBuffer | undefined;
@@ -39,7 +39,7 @@ export function stopNavigationSound(): void {
 }
 
 export function setNavigationSoundActive(active: boolean): void {
- homeActive = active;
+ focusActive = active;
  if(!active)stopCue();
 }
 
@@ -129,9 +129,9 @@ function prepareBuffer(ctx: AudioContext): void {
 }
 
 export function playNavigationTick(): void {
- if(!enabled || !homeActive || document.hidden)return;
+ if(!enabled || !focusActive || document.hidden)return;
  if(backend === 'native') {
-  // Dispatch immediately for every accepted tile move. Never wait for the last
+  // Dispatch immediately for every accepted focus move. Never wait for the last
   // response or replay a failed/delayed request through another backend.
   void nativeSound(SOUND).catch(() => {
    backend = 'web';if(enabled && !document.hidden)warmWebAudio();
