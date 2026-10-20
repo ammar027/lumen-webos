@@ -136,8 +136,10 @@ rapid CDP remote-key presses each dispatched one native click.
 Dispatch took 0.7-1.7 ms from key handling; the service acknowledged requests in
 9.7-42.2 ms. No Web Audio context was created. Blocked arrows, panels and Off stayed
 silent, Soft stayed ready after a pause, and preferences and TV volume were
-unchanged. Speaker latency and perceived sound character require a listening check;
-service response timing alone is not a speaker measurement.
+unchanged. The owner's subsequent listening check rejected the sound character and
+reported that isolated movements can be silent. Version 0.3.7 is therefore not
+accepted for audio; the isolated-press path remains under investigation. Service
+response timing alone is not a speaker measurement.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental
