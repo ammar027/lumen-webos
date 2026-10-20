@@ -10,3 +10,12 @@ app-assets/public/iconpack/
 app-assets/public/wallpapers/
 tools/logos/
 release/
+
+# Optional trial build outputs and machine-specific configuration
+.trial-evidence/
+trial/node_modules/
+trial/__pycache__/
+trial/.icon-tests-bundle.mjs
+trial/artwork/
+trial/overlay/src/config/catalog.local.ts
+trial/overlay/src/config/trialSeed.local.json

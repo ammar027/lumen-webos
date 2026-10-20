@@ -1,0 +1,364 @@
+{
+  "inputs": {
+    "arcDevicePower": 255,
+    "returnValue": true,
+    "arcDevice": false,
+    "devices": [
+      {
+        "connected": false,
+        "subCount": 0,
+        "iconPrefix": "/usr/palm/plugins/inputapps/assets/small/",
+        "subList": [],
+        "id": "AV_1",
+        "port": 1,
+        "modified": false,
+        "appId": "com.webos.app.externalinput.av1",
+        "label": "Input Source 7",
+        "activate": false,
+        "icon": "av.png",
+        "forceIcon": false,
+        "chosen": false
+      },
+      {
+        "connected": false,
+        "subCount": 0,
+        "iconPrefix": "/usr/palm/plugins/inputapps/assets/small/",
+        "subList": [],
+        "lastUniqueId": -1,
+        "id": "HDMI_1",
+        "port": 1,
+        "modified": false,
+        "appId": "com.webos.app.hdmi1",
+        "label": "Input Source 3",
+        "activate": false,
+        "icon": "HDMI_1.png",
+        "forceIcon": false,
+        "chosen": false,
+        "hdmiPlugIn": false
+      },
+      {
+        "connected": true,
+        "subCount": 0,
+        "iconPrefix": "/usr/palm/plugins/inputapps/assets/small/",
+        "subList": [],
+        "lastUniqueId": -1,
+        "id": "HDMI_2",
+        "port": 2,
+        "modified": false,
+        "appId": "com.webos.app.hdmi2",
+        "label": "Input Source 4",
+        "activate": false,
+        "icon": "HDMI_2.png",
+        "forceIcon": false,
+        "chosen": false,
+        "hdmiPlugIn": false
+      },
+      {
+        "connected": true,
+        "subCount": 1,
+        "iconPrefix": "/usr/palm/plugins/inputapps/assets/small/",
+        "subList": [
+          {
+            "settopCode": "incomplete",
+            "ossSetupStatus": "complete",
+            "connectedInput": "HDMI_3",
+            "id": "URCU",
+            "hasPowerKey": false,
+            "serviceType": "game",
+            "brandName": "Switch2",
+            "settopOption": "",
+            "codeset": "",
+            "serviceName": "",
+            "isMainSTB": false,
+            "serviceArea": "",
+            "labelName": "Switch2",
+            "detectedMethod": "auto_lookup",
+            "priorityOverCEC": false
+          }
+        ],
+        "lastUniqueId": -1,
+        "id": "HDMI_3",
+        "port": 3,
+        "modified": false,
+        "appId": "com.webos.app.hdmi3",
+        "label": "Games console",
+        "activate": false,
+        "icon": "gameconsole.png",
+        "forceIcon": false,
+        "chosen": false,
+        "hdmiPlugIn": true
+      },
+      {
+        "connected": true,
+        "subCount": 0,
+        "iconPrefix": "/usr/palm/plugins/inputapps/assets/small/",
+        "subList": [],
+        "lastUniqueId": -1,
+        "id": "HDMI_4",
+        "port": 4,
+        "modified": false,
+        "appId": "com.webos.app.hdmi4",
+        "label": "HDMI 4",
+        "activate": false,
+        "icon": "HDMI_4.png",
+        "forceIcon": false,
+        "chosen": false,
+        "hdmiPlugIn": false
+      }
+    ],
+    "blockedAllInput": false,
+    "totalCount": 5,
+    "unknownCECPNumber": 0,
+    "atmosDevice": false
+  },
+  "foreground": {
+    "appId": "youtube.leanback.v4",
+    "returnValue": true,
+    "windowId": "",
+    "processId": ""
+  },
+  "picture": {
+    "dimension": {
+      "input": "default",
+      "_3dStatus": "2d",
+      "dynamicRange": "sdr"
+    },
+    "subscribed": false,
+    "category": "picture",
+    "method": "getSystemSettings",
+    "settings": {
+      "pictureMode": "normal"
+    },
+    "returnValue": true
+  },
+  "pictureChoices": {
+    "subscribed": false,
+    "method": "getSystemSettingDesc",
+    "returnValue": true,
+    "results": [
+      {
+        "vtype": "ArrayExt",
+        "dbtype": "G",
+        "ui": {
+          "active": true,
+          "displayName": "pictureMode",
+          "visible": true,
+          "widget": "None"
+        },
+        "hasCountryVar": true,
+        "values": {
+          "arrayExt": [
+            {
+              "active": true,
+              "value": "vivid",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "hdrVivid",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "normal",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "eco",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "cinema",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "hdrStandard",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "hdrCinemaBright",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "hdrCinema",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "sports",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "game",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "photo",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "hdrGame",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "hdrEffect",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "filmMaker",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "hdrFilmMaker",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "dolbyHdrVivid",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "dolbyHdrStandard",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "dolbyHdrCinemaBright",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "dolbyHdrCinema",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "dolbyHdrGame",
+              "visible": false
+            },
+            {
+              "active": true,
+              "value": "expert1",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "expert2",
+              "visible": true
+            }
+          ]
+        },
+        "volatile": false,
+        "valueCheck": true,
+        "category": "picture",
+        "key": "pictureMode",
+        "dimension": [
+          "input",
+          "_3dStatus",
+          "dynamicRange"
+        ]
+      }
+    ]
+  },
+  "sound": {
+    "dimension": {
+      "input": "default"
+    },
+    "subscribed": false,
+    "category": "sound",
+    "method": "getSystemSettings",
+    "settings": {
+      "soundMode": "aiSound"
+    },
+    "returnValue": true
+  },
+  "soundChoices": {
+    "subscribed": false,
+    "method": "getSystemSettingDesc",
+    "returnValue": true,
+    "results": [
+      {
+        "vtype": "ArrayExt",
+        "dbtype": "G",
+        "ui": {
+          "active": true,
+          "displayName": "soundMode",
+          "visible": true,
+          "widget": "None"
+        },
+        "values": {
+          "arrayExt": [
+            {
+              "active": true,
+              "value": "aiSoundPlus",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "aiSound",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "standard",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "movie",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "news",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "sports",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "music",
+              "visible": true
+            },
+            {
+              "active": true,
+              "value": "game",
+              "visible": true
+            }
+          ]
+        },
+        "volatile": false,
+        "valueCheck": true,
+        "category": "sound",
+        "key": "soundMode",
+        "dimension": [
+          "input"
+        ]
+      }
+    ]
+  },
+  "audio": {
+    "scenario": "mastervolume_tv_speaker",
+    "volume": 100,
+    "returnValue": true
+  },
+  "sleep": {
+    "sleepTimeSecond": 0,
+    "returnValue": true
+  }
+}

@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {build} from '../app/node_modules/esbuild/lib/main.js';
+const file=new URL('.icon-tests-bundle.mjs',import.meta.url);
+await build({entryPoints:[new URL('../app/src/lib/apps.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',outfile:file.pathname,define:{'import.meta.env.DEV':'false','import.meta.glob':'emptyGlob'},banner:{js:'const emptyGlob = () => ({});'}});
+const memory={};globalThis.localStorage={getItem:k=>memory[k]||null,setItem:(k,v)=>{memory[k]=v;}};
+const {loadIcons}=await import(file);
+const png=Buffer.alloc(320000,42);Buffer.from([137,80,78,71,13,10,26,10]).copy(png);
+let reads=0;let stamp=10;let maxOutput=0;
+const run=async command=>{
+ if(command.includes('stat -c'))return `0 ${png.length} ${stamp}\n1 30000 1\n`;
+ if(command.includes('/bad.png'))throw new Error('read failure');
+ const index=Number(/skip=(\d+)/.exec(command)[1]);reads++;
+ const chunk=png.subarray(index*24576,(index+1)*24576).toString('base64');maxOutput=Math.max(maxOutput,chunk.length);return chunk;
+};
+const points=[{id:'large',largeIcon:'/large.png',title:'Large'},{id:'bad',largeIcon:'/bad.png',title:'Bad'},{id:'unsafe',largeIcon:"/bad'; touch /x",title:'Unsafe'}];
+let result=await loadIcons(points,run);
+assert.deepEqual(Buffer.from(result.large.split(',')[1],'base64'),png);
+assert.equal(result.bad,undefined);assert.equal(result.unsafe,undefined);assert(maxOutput<=32768);assert(reads>1);
+const first=reads;result=await loadIcons(points,run);assert.equal(reads,first,'cache should avoid image reads');
+stamp++;await loadIcons(points,run);assert(reads>first,'mtime change should invalidate the cached image');
+assert.deepEqual(await loadIcons([],run),{});
+console.log(JSON.stringify({passed:true,largeBytes:png.length,maxChunkResponse:maxOutput,checks:['large icon chunks','partial failure','unsafe path','cache hit','cache invalidation','empty list']}));

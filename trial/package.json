@@ -1,0 +1,12 @@
+{
+  "name": "lumen-trial-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node run-tests.mjs",
+    "install:browser": "playwright install chromium"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

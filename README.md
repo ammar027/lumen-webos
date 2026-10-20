@@ -50,6 +50,11 @@ Optional: to make the remote's **Home** button open Lumen, see the TV scripts un
 
 ## How to build it
 
+An optional [webOS 5 trial](trial/README.md) adds an expanding five-column app grid,
+bounded native icon reads, an in-app photo frame, and shared Inputs / Control Center
+surfaces. It targets Chromium 68 and installs separately as `local.lumen.trial`.
+Its pinned source overlay and fixture checks are independent of the existing patch pipeline below.
+
 `app/` is a clone of the upstream launcher and is not part of this repository. Everything changed is re-applied by the scripts in `tools/`.
 See [REBUILD.md](REBUILD.md) for the exact order.
 

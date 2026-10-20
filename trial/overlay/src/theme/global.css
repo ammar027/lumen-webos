@@ -1,0 +1,989 @@
+/* Global styles. Values come from tokens.ts via CSS custom properties (see applyTokens).
+   Written for Chrome 79: no flex `gap`, no `inset`, no `aspect-ratio`. */
+
+@font-face {
+	font-family: 'Geist Variable';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: block;
+	src: url('../assets/geist-wght.woff2') format('woff2');
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+	margin: 0;
+	padding: 0;
+	width: var(--layout-screen-width);
+	height: var(--layout-screen-height);
+	overflow: hidden;
+	background: var(--color-bg);
+	color: var(--color-text-primary);
+	font-family: var(--font-family);
+	-webkit-font-smoothing: antialiased;
+	user-select: none;
+}
+
+#root { width: 100%; height: 100%; }
+
+/* ---------- screen ---------- */
+
+.screen {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	padding: 0 var(--layout-edge-padding);
+	/* the soft colour glows shown when there is no wallpaper picture (Plain background, or while one loads) */
+	background:
+		radial-gradient(ellipse 60% 55% at 18% 18%, rgba(70, 120, 255, 0.45) 0%, rgba(70, 120, 255, 0) 70%),
+		radial-gradient(ellipse 55% 60% at 85% 30%, rgba(170, 80, 230, 0.38) 0%, rgba(170, 80, 230, 0) 70%),
+		radial-gradient(ellipse 70% 50% at 55% 100%, rgba(30, 170, 190, 0.34) 0%, rgba(30, 170, 190, 0) 70%),
+		#0a0f1e;
+}
+
+/* ---------- header ---------- */
+
+.header {
+	position: absolute;
+	left: 0; right: 0;
+	top: var(--layout-header-top);
+	text-align: center;
+	pointer-events: none;
+}
+.header__greeting {
+	display: none;
+	margin: 0;
+	font-size: var(--font-greeting);
+	font-weight: 300;
+	letter-spacing: -0.01em;
+	color: var(--color-text-primary);
+}
+
+.clock {
+	position: absolute;
+	right: var(--layout-edge-padding);
+	top: var(--layout-header-top);
+	text-align: center;
+	color: var(--color-text-secondary);
+	font-weight: 300;
+	line-height: 1.25;
+	pointer-events: none;
+}
+.clock__line { font-size: var(--font-clock); }
+.clock__time { font-size: var(--font-clock-time); font-weight: 200; letter-spacing: 0.02em; }
+.clock__period { margin-left: 8px; font-size: var(--font-clock-period); font-weight: 300; letter-spacing: 0.08em; }
+
+/* ---------- rows ---------- */
+
+.rows {
+	position: absolute;
+	left: var(--layout-edge-padding);
+	right: var(--layout-edge-padding);
+	top: var(--layout-rows-top);
+}
+
+.row { margin-bottom: var(--layout-row-gap); }
+.row:last-child { margin-bottom: 0; }
+
+.row__label {
+	display: none;
+	margin: 0 0 var(--layout-row-label-gap);
+	font-size: var(--font-row-label);
+	font-weight: 500;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+	transition: color var(--motion-focus-ms) ease-out;
+}
+.row--focused .row__label { color: var(--color-text-secondary); }
+
+/* The viewport clips; the track slides. Extra vertical padding leaves room for the
+   focus scale so tiles are never clipped while enlarged. */
+.row__viewport {
+	overflow: hidden;
+	/* room around the tiles so a focused (enlarged, glowing) one is never clipped */
+	padding: 40px 70px 90px;
+	margin: -40px -70px -90px;
+	opacity: var(--motion-unfocused-row-opacity);
+	transition: opacity var(--motion-focus-ms) ease-out;
+}
+.row--focused .row__viewport { opacity: 1; }
+
+.row__track {
+	display: flex;
+	flex-direction: row;
+	transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
+	will-change: transform;
+}
+.row__track--centered { justify-content: center; }
+
+.row__empty {
+	font-size: var(--font-tile-label);
+	color: var(--color-text-muted);
+	font-weight: 400;
+}
+
+/* ---------- tiles ---------- */
+
+.tile {
+	flex: 0 0 auto;
+	width: var(--layout-tile-size);
+	margin-right: var(--layout-tile-gap);
+	text-align: center;
+	outline: none;
+}
+.tile:last-child { margin-right: 0; }
+
+.tile__box {
+	position: relative;
+	width: var(--layout-tile-size);
+	height: var(--layout-tile-height);
+	border-radius: var(--layout-tile-radius);
+	background: var(--color-tile-bg);
+	box-shadow: 0 0 0 2px var(--color-tile-border);
+	overflow: hidden;
+	transform: scale(1);
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.tile--focused .tile__box {
+	transform: scale(var(--motion-focus-scale)) translateY(-6px);
+	background: var(--color-tile-bg-focus);
+	box-shadow: 0 34px 56px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(0, 0, 0, 0.3);
+	z-index: 1;
+}
+
+.tile__image {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	object-fit: cover;
+}
+.tile__image--glyph {
+	/* LG's input glyphs are dark grey line art on transparency: lift them to light grey. */
+	left: 18%; top: 18%;
+	width: 64%; height: 64%;
+	object-fit: contain;
+	filter: brightness(2.4);
+}
+.tile__glyph {
+	position: absolute;
+	left: 25%; top: 25%;
+	width: 50%; height: 50%;
+	fill: none;
+	stroke: var(--color-text-primary);
+	stroke-width: 1.6;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.tile__monogram {
+	position: absolute;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 64px;
+	font-weight: 600;
+	color: var(--color-text-primary);
+}
+
+.tile__label {
+	/* up to two lines, using a little of the gutter either side, so long input names fit */
+	width: calc(var(--layout-tile-size) + var(--layout-tile-gap) - 8px);
+	height: calc(var(--font-tile-label) * 2.4);
+	margin: 26px 0 0 calc((var(--layout-tile-gap) - 8px) / -2);
+	line-height: 1.2;
+	font-size: var(--font-tile-label);
+	font-weight: 400;
+	color: var(--color-text-primary);
+	white-space: normal;
+	overflow: hidden;
+	opacity: 0;
+	transition: opacity var(--motion-focus-ms) ease-out;
+	text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.tile--focused .tile__label { opacity: 1; }
+
+.tile__badge {
+	position: absolute;
+	right: 12px; top: 12px;
+	width: 34px; height: 34px;
+	border-radius: 50%;
+	background: var(--color-badge);
+	color: var(--color-badge-text);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.tile__badge svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- settings ---------- */
+
+.settings {
+	position: absolute;
+	left: var(--layout-edge-padding);
+	right: var(--layout-edge-padding);
+	top: var(--layout-header-top);
+	bottom: 60px;
+}
+.settings__title {
+	margin: 0;
+	font-size: var(--font-settings-title);
+	font-weight: 300;
+	color: var(--color-text-primary);
+}
+.settings__hint {
+	margin: 8px 0 0;
+	font-size: var(--font-tile-label);
+	color: var(--color-text-muted);
+}
+.settings__tabs {
+	display: flex;
+	flex-direction: row;
+	margin: 36px 0 30px;
+}
+.tab {
+	margin-right: 40px;
+	padding: 10px 4px;
+	font-size: var(--font-settings-tab);
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--color-text-muted);
+	border-bottom: 3px solid transparent;
+	transition: color var(--motion-focus-ms) ease-out, border-color var(--motion-focus-ms) ease-out;
+}
+.tab--active { color: var(--color-text-secondary); border-bottom-color: var(--color-tile-border); }
+.tab--focused { color: var(--color-text-primary); border-bottom-color: var(--color-tile-border-focus); }
+.tab--locked { opacity: 0.35; }
+
+/* top-right of the tabs row */
+.settings__button {
+	margin-left: auto;
+	align-self: center;
+	padding: 12px 28px;
+	border-radius: 999px;
+	font-size: var(--font-settings-button);
+	font-weight: 500;
+	color: var(--color-text-secondary);
+	box-shadow: 0 0 0 2px var(--color-button-border);
+	transform: scale(1);
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.settings__button--focused {
+	color: var(--color-text-primary);
+	box-shadow: 0 0 0 4px var(--color-tile-border-focus);
+	transform: scale(1.06);
+}
+.settings__button--active {
+	background: var(--color-button-active-bg);
+	color: var(--color-button-active-text);
+}
+
+.grid__viewport {
+	overflow: hidden;
+	height: 720px;
+	padding: 16px 0;
+}
+.grid__track {
+	display: grid;
+	grid-template-columns: repeat(var(--layout-grid-columns), var(--layout-tile-size));
+	grid-column-gap: var(--layout-tile-gap);
+	grid-row-gap: 40px;
+	justify-content: center;
+	transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1);
+	will-change: transform;
+}
+.grid__track .tile { margin-right: 0; }
+.tile--dimmed .tile__box { opacity: 0.45; }
+
+/* re-order mode: the picked-up tile floats above the others */
+.tile--lifted .tile__box,
+.tile--lifted.tile--focused .tile__box {
+	transform: scale(var(--motion-lift-scale)) translateY(-6px);
+	box-shadow: 0 0 0 5px var(--color-tile-border-focus), 0 18px 40px var(--color-lift-shadow);
+	z-index: 2;
+}
+.tile--lifted .tile__label { color: var(--color-text-primary); }
+.tile--dimmed .tile__label { color: var(--color-text-muted); }
+
+/* ---------- options ---------- */
+
+.options { width: 1100px; padding-top: 8px; }
+
+.option {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 24px 28px;
+	margin-bottom: 16px;
+	border-radius: var(--layout-tile-radius);
+	background: var(--color-tile-bg);
+	box-shadow: 0 0 0 2px var(--color-tile-border);
+}
+.option--focused {
+	background: var(--color-tile-bg-focus);
+	box-shadow: 0 0 0 5px var(--color-tile-border-focus);
+}
+.option__text { flex: 1 1 auto; margin-right: 40px; }
+.option__label { font-size: var(--font-option-label); color: var(--color-text-primary); }
+.option__description { margin-top: 8px; font-size: var(--font-option-description); line-height: 1.4; color: var(--color-text-secondary); }
+
+.switch {
+	flex: 0 0 auto;
+	position: relative;
+	width: 76px; height: 40px;
+	border-radius: 20px;
+	background: var(--color-switch-track);
+}
+.switch__knob {
+	position: absolute;
+	left: 4px; top: 4px;
+	width: 32px; height: 32px;
+	border-radius: 50%;
+	background: var(--color-switch-knob);
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.switch--on { background: var(--color-switch-track-on); }
+.switch--on .switch__knob { transform: translateX(36px); background: var(--color-switch-knob-on); }
+
+/* ---------- toast ---------- */
+
+.toast {
+	position: absolute;
+	left: 50%;
+	bottom: 56px;
+	transform: translateX(-50%);
+	padding: 14px 28px;
+	border-radius: 999px;
+	background: var(--color-tile-bg-focus);
+	box-shadow: 0 0 0 1px var(--color-tile-border);
+	font-size: var(--font-toast);
+	color: var(--color-text-secondary);
+	white-space: nowrap;
+	pointer-events: none;
+}
+.toast--error { color: var(--color-danger); }
+
+/* ---------- Apple TV look: frosted-glass shelf behind the apps row, small dock, time pill ---------- */
+
+.row:not(.row--dock) { position: relative; }
+.row:not(.row--dock)::before {
+	content: '';
+	position: absolute;
+	left: -70px; right: -70px;
+	top: 4px;
+	height: calc(var(--layout-tile-height) + 72px);
+	border-radius: 60px;
+	background: rgba(255, 255, 255, 0.14);
+	box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22), 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+.row .row__viewport { position: relative; z-index: 1; }
+.row--dock {
+	position: fixed;
+	left: var(--layout-edge-padding);
+	right: var(--layout-edge-padding);
+	bottom: 56px;
+	margin: 0;
+	--layout-tile-size: 84px;
+	--layout-tile-height: 84px;
+	--layout-tile-gap: 26px;
+	--layout-tile-radius: 24px;
+	--motion-focus-scale: 1.22;
+	--font-tile-label: 28px;
+}
+.row--dock .row__viewport { padding: 30px 70px 70px; margin: -30px -70px -70px; opacity: 0.7; }
+.row--dock.row--focused .row__viewport { opacity: 1; }
+.row--dock .tile__label { margin-top: 12px; text-align: center; }
+.row--dock .tile__monogram { font-size: 34px; }
+.clock { background: rgba(255, 255, 255, 0.14); padding: 10px 26px; border-radius: 40px; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.2); color: var(--color-text-primary); }
+.clock__line { display: none; }
+.clock__time { font-size: 30px; font-weight: 400; letter-spacing: 0.01em; }
+
+/* ---------- wallpaper: still picture (lib/wallpaper.ts) and optional video (lib/wallpaperVideo.ts) ---------- */
+
+#wpimage, #bgvideo {
+	position: fixed;
+	left: 0; top: 0;
+	width: 100%; height: 100%;
+	z-index: 0;
+}
+#wpimage { background: center / cover no-repeat; }
+#bgvideo { object-fit: cover; background: #000; }
+#root { position: relative; z-index: 1; }
+/* with a picture or video behind, the screen keeps only a dark fade for legibility */
+.wp-image .screen, .wp-video .screen {
+	background:
+		linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.0) 45%),
+		linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.0) 25%);
+}
+
+/* ---------- Settings > Wallpaper ---------- */
+
+.wp__chips { display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 26px; }
+.wp__chip {
+	margin-right: 14px; margin-bottom: 12px; padding: 10px 26px; border-radius: 999px;
+	font-size: var(--font-settings-button); color: var(--color-text-secondary);
+	background: rgba(255, 255, 255, 0.08);
+}
+.wp__chip--on { background: rgba(255, 255, 255, 0.22); color: var(--color-text-primary); }
+.wp__chip--focused { background: #fff; color: #000; }
+.wp__viewport { overflow: hidden; height: 640px; padding-top: 20px; margin-top: -20px; }
+.wp__track { display: flex; flex-direction: row; flex-wrap: wrap; width: 1640px; transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1); will-change: transform; }
+.wp__item { width: 360px; height: 273px; margin-right: 66.66px; text-align: left; }
+.wp__item:nth-child(4n) { margin-right: 0; }
+.wp__thumb {
+	position: relative; width: 360px; height: 203px; border-radius: 22px; overflow: hidden;
+	background: rgba(255, 255, 255, 0.1) center / cover no-repeat;
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.wp__thumbtext { position: absolute; left: 0; right: 0; top: 50%; margin-top: -16px; text-align: center; font-size: 28px; color: var(--color-text-secondary); }
+.wp__tick { position: absolute; right: 12px; top: 12px; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: #000; text-align: center; line-height: 38px; font-size: 24px; }
+.wp__title { margin-top: 14px; font-size: 20px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 360px; }
+.wp__item--focused .wp__thumb { transform: scale(1.06); box-shadow: 0 22px 40px rgba(0, 0, 0, 0.5), 0 0 0 4px #fff; }
+.wp__item--focused .wp__title { color: var(--color-text-primary); }
+
+/* Settings is its own solid frosted panel over the wallpaper: nothing of the home screen (shelf, dock) may show through */
+.screen.screen--settings, .wp-image .screen.screen--settings, .wp-video .screen.screen--settings {
+	background: rgba(12, 14, 22, 0.94);
+	z-index: 10;
+}
+
+/* ---------- lite glass: no live blur; a pre-blurred wallpaper copy (--wp-blur) shows through the shapes ---------- */
+
+:root { --glass-fallback: linear-gradient(rgba(74, 84, 106, 0.60), rgba(40, 46, 62, 0.60)); }
+.row:not(.row--dock)::before,
+.clock,
+.row--dock .tile__box,
+.wp__chip, .option, .settings__button {
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.07) 42%, rgba(255, 255, 255, 0.16) 100%), var(--wp-blur, var(--glass-fallback));
+	background-size: auto, 1920px 1080px;
+	background-attachment: scroll, fixed;
+	background-position: 0 0, var(--dev-left, 0px) var(--dev-top, 0px);
+	background-repeat: no-repeat;
+	background-color: rgba(30, 36, 50, 0.30);
+}
+/* bright rim lights (static inset shadows: the part that makes it read as glass, at almost no cost) */
+.row:not(.row--dock)::before {
+	box-shadow: inset 3px 3px 2px -1px rgba(255, 255, 255, 0.85), inset -3px -3px 2px -1px rgba(255, 255, 255, 0.40), inset 0 0 36px rgba(255, 255, 255, 0.10), 0 20px 44px rgba(0, 0, 0, 0.28);
+}
+.row:not(.row--dock)::after {
+	content: '';
+	position: absolute;
+	left: -30px; right: -30px;
+	top: 6px;
+	height: 3px;
+	border-radius: 3px;
+	background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.35) 70%, rgba(255, 255, 255, 0));
+	z-index: 2;
+	pointer-events: none;
+}
+.clock, .row--dock .tile__box {
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.9), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.42), inset 0 0 14px rgba(255, 255, 255, 0.10), 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+.row--dock .tile--focused .tile__box {
+	background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16) 55%, rgba(255, 255, 255, 0.30)), var(--wp-blur, var(--glass-fallback));
+}
+.wp__chip, .option, .settings__button {
+	box-shadow: inset 2px 2px 1px -1px rgba(255, 255, 255, 0.7), inset -2px -2px 1px -1px rgba(255, 255, 255, 0.28);
+}
+.wp__chip--on { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.14)), var(--wp-blur, var(--glass-fallback)); }
+.wp__chip--focused { background-image: none; background-color: #fff; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35); }
+.option--focused { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.12)), var(--wp-blur, var(--glass-fallback)); box-shadow: inset 2px 2px 1px -1px rgba(255, 255, 255, 0.95), inset -2px -2px 1px -1px rgba(255, 255, 255, 0.5), 0 0 0 4px #fff; }
+
+/* Settings: a solid dark panel (a full-screen blur would be the single most expensive thing on this TV) */
+.screen.screen--settings, .wp-image .screen.screen--settings, .wp-video .screen.screen--settings { background: rgba(12, 14, 22, 0.97); }
+
+/* focus: only `transform` animates (the compositor moves it); the shadow and shine appear at once instead of being animated */
+.tile__box { transition: transform var(--motion-focus-ms) ease-out; }
+.tile--focused .tile__box { will-change: transform; box-shadow: 0 22px 34px rgba(0, 0, 0, 0.45); }
+.row:not(.row--dock) .tile--focused .tile__box::after {
+	content: '';
+	position: absolute;
+	left: 0; top: 0; right: 0; bottom: 0;
+	background: linear-gradient(115deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.10) 28%, rgba(255, 255, 255, 0) 46%);
+	pointer-events: none;
+}
+.row--dock .tile--focused .tile__box { box-shadow: inset 2px 2px 1.5px -1px #fff, inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.6), 0 14px 24px rgba(0, 0, 0, 0.35); }
+
+/* wallpaper picker: windowed rows are positioned by hand */
+.wp__track { display: block; position: relative; }
+.wp__item { position: absolute; margin: 0; }
+.wp__thumb { transition: transform var(--motion-focus-ms) ease-out; }
+.wp__item--focused .wp__thumb { box-shadow: 0 0 0 4px #fff; }
+
+/* ---------- tvOS-style home: glass shelf on the first row only, top bar with round glass buttons, Inputs panel ---------- */
+
+.rows > .row:not(:first-child)::before, .rows > .row:not(:first-child)::after { display: none; }
+.rows > .row + .row { margin-top: 10px; }
+
+.topbar { position: absolute; top: 64px; right: var(--layout-edge-padding); display: flex; flex-direction: row; align-items: center; z-index: 5; }
+.topbar .clock { position: static; margin: 0; }
+.pill {
+	position: relative; width: 76px; height: 76px; border-radius: 38px; margin-right: 22px;
+	display: flex; align-items: center; justify-content: center;
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.pill svg { width: 36px; height: 36px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pill__label { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); font-size: 22px; white-space: nowrap; opacity: 0; transition: opacity var(--motion-focus-ms) ease-out; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
+.pill--focused, .pill--open { transform: scale(1.14); }
+.pill--focused .pill__label { opacity: 1; }
+.pill--focused, .pill--open { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.20) 55%, rgba(255, 255, 255, 0.34)), var(--wp-blur, var(--glass-fallback)); }
+.pill--focused svg, .pill--open svg { stroke: #fff; }
+
+.pill, .panel {
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.07) 42%, rgba(255, 255, 255, 0.16) 100%), var(--wp-blur, var(--glass-fallback));
+	background-size: auto, 1920px 1080px;
+	background-attachment: scroll, fixed;
+	background-position: 0 0, var(--dev-left, 0px) var(--dev-top, 0px);
+	background-repeat: no-repeat;
+	background-color: rgba(30, 36, 50, 0.30);
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.9), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.42), inset 0 0 14px rgba(255, 255, 255, 0.10), 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+.pill--focused, .pill--open { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.20) 55%, rgba(255, 255, 255, 0.34)), var(--wp-blur, var(--glass-fallback)); }
+
+.panel-backdrop { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.38); z-index: 19; }
+.panel {
+	position: absolute; top: 190px; right: var(--layout-edge-padding); width: 760px; padding: 30px 36px 14px; border-radius: 44px; z-index: 20;
+	animation: panel-in 180ms ease-out;
+	--layout-tile-size: 200px; --layout-tile-height: 120px; --layout-tile-gap: 24px; --layout-tile-radius: 24px; --font-tile-label: 24px;
+}
+@keyframes panel-in { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+.panel__title { font-size: 30px; color: var(--color-text-primary); margin: 0 0 22px 6px; letter-spacing: 0.02em; }
+.panel__grid { display: flex; flex-direction: row; flex-wrap: wrap; padding: 6px 6px 0; }
+.panel .tile { margin: 0 24px 18px 0; }
+.panel .tile:nth-child(3n) { margin-right: 0; }
+.panel .tile__label { opacity: 1; height: auto; margin: 12px 0 0 0; width: var(--layout-tile-size); text-align: center; }
+.panel .tile--focused .tile__box { box-shadow: 0 0 0 4px #fff, 0 14px 24px rgba(0, 0, 0, 0.35); }
+.panel__empty { font-size: 24px; color: var(--color-text-secondary); padding: 10px 6px 24px; }
+
+/* lower rows fade in from slightly below when the remote goes down to them, and fade out again when it leaves */
+.row { transition: opacity 200ms ease-out, transform 200ms ease-out, visibility 0s linear 0s; }
+.row--hidden { opacity: 0; transform: translateY(26px); visibility: hidden; pointer-events: none; transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s linear 160ms; }
+
+/* the apps shelf sits at the bottom of the screen; going down to the second row slides the whole stack up (a compositor-only move) */
+.rows { transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.rows--lower { transform: translateY(-300px); }
+
+/* The glass dock hugs the icons with the same gap on every side, and its corner radius is the icon radius plus that gap, so the
+   outer and inner corners are concentric (as in the real tvOS dock). Gap = 24px (the real dock's gap is about 8% of the icon width). */
+.row:not(.row--dock)::before {
+	left: calc(50% - var(--row-w, 1556px) / 2 - 24px);
+	right: auto;
+	width: calc(var(--row-w, 1556px) + 48px);
+	top: 16px;
+	height: calc(var(--layout-tile-height) + 48px);
+	border-radius: calc(var(--layout-tile-radius) + 24px);
+}
+.row:not(.row--dock)::after {
+	left: calc(50% - var(--row-w, 1556px) / 2 + 8px);
+	right: auto;
+	width: calc(var(--row-w, 1556px) - 16px);
+	top: 22px;
+}
+
+.row:not(.row--dock)::after { display: none; }
+.row:not(.row--dock)::before {
+	box-shadow: inset 0 2px 1px -1px rgba(255, 255, 255, 0.9), inset 2px 0 1px -1px rgba(255, 255, 255, 0.55), inset 0 -2px 1px -1px rgba(255, 255, 255, 0.30), inset -2px 0 1px -1px rgba(255, 255, 255, 0.30), inset 0 0 30px rgba(255, 255, 255, 0.08), 0 20px 44px rgba(0, 0, 0, 0.28);
+}
+
+.pill { width: 58px; height: 58px; border-radius: 29px; margin-right: 16px; }
+.pill svg { width: 28px; height: 28px; }
+.pill__label { top: 72px; font-size: 20px; }
+.topbar .clock { height: 58px; box-sizing: border-box; display: flex; align-items: center; padding: 0 26px; border-radius: 29px; }
+.topbar .clock__time { line-height: 1; }
+
+/* ---------- Settings, tvOS style ---------- */
+
+/* a fully solid backdrop (nothing of the home screen shows through): the blurred wallpaper copy, darkened */
+.screen.screen--settings, .wp-image .screen.screen--settings, .wp-video .screen.screen--settings {
+	background-color: #0b0e16;
+	background-image: linear-gradient(rgba(8, 10, 18, 0.50), rgba(8, 10, 18, 0.66)), var(--wp-blur, none);
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-attachment: scroll;
+}
+.settings__title { display: none; }
+.settings__hint { text-align: center; margin: 0 0 26px; font-size: 22px; color: rgba(255, 255, 255, 0.55); }
+.settings__tabs { position: relative; display: flex; flex-direction: row; justify-content: center; align-items: center; margin: 0 0 44px; }
+
+/* the floating glass tab bar: the focused tab is a white capsule with dark text, the chosen one a lighter glass capsule */
+.tabbar {
+	display: flex; flex-direction: row; padding: 8px; border-radius: 48px;
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06) 45%, rgba(255, 255, 255, 0.14)), var(--wp-blur, var(--glass-fallback));
+	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-position: 0 0, var(--dev-left, 0px) var(--dev-top, 0px); background-repeat: no-repeat;
+	background-color: rgba(30, 36, 50, 0.30);
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.85), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.35), 0 12px 28px rgba(0, 0, 0, 0.30);
+}
+.tab {
+	margin: 0 2px; padding: 14px 38px; border-radius: 40px; border-bottom: none;
+	font-size: 30px; font-weight: 600; letter-spacing: 0.01em; text-transform: none;
+	color: rgba(255, 255, 255, 0.72);
+	transition: background-color var(--motion-focus-ms) ease-out;
+}
+.tab--active { background-color: rgba(255, 255, 255, 0.20); color: #fff; border-bottom-color: transparent; }
+.tab--focused { background-color: #fff; color: #111; border-bottom-color: transparent; }
+.tab--locked { opacity: 0.4; }
+.settings__button { position: absolute; right: 0; top: 50%; margin: 0; transform: translateY(-50%); font-size: 24px; padding: 14px 30px; }
+.settings__button--focused { transform: translateY(-50%) scale(1.06); background-image: none; background-color: #fff; color: #111; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35); }
+.settings__button--active { background-image: none; background-color: rgba(255, 255, 255, 0.9); color: #111; }
+
+/* Settings: translucent white glass over the dark blurred backdrop (no second picture, nothing to misalign) */
+.tabbar, .option, .wp__chip, .settings__button {
+	background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06));
+	background-size: auto;
+	background-attachment: scroll;
+	background-position: 0 0;
+	background-color: rgba(255, 255, 255, 0.04);
+}
+.wp__chip--on { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.14)); }
+.wp__chip--focused { background-image: none; background-color: #fff; }
+.option--focused { background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.12)); }
+.option__description { color: rgba(255, 255, 255, 0.72); }
+
+.rows { transition: top 240ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.rows--lower { transform: none; top: calc(var(--layout-rows-top) - 300px); }
+.screen--lower::before { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.34); animation: lower-dim 220ms ease-out; pointer-events: none; }
+@keyframes lower-dim { from { opacity: 0; } to { opacity: 1; } }
+
+/* going down into the lower rows fades the wallpaper to a strongly blurred, slightly darkened copy, as the tvOS app grid does */
+.screen--lower::before {
+	background-color: #10131c;
+	background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), var(--wp-bg, none);
+	background-size: auto, cover;
+	background-position: 0 0, center;
+	background-repeat: no-repeat;
+}
+/* the second row lines up with the dock's columns (left-aligned) instead of floating in the middle */
+.rows > .row:not(:first-child) .row__track--centered { margin-left: calc((1640px - 1556px) / 2); margin-right: 0; }
+
+.rows > .row:not(:first-child) .row__track--centered { justify-content: flex-start; padding-left: calc((1640px - 1556px) / 2); margin-left: 0; }
+.screen--lower { --wp-blur: var(--wp-bg); }
+
+.settings__title + .settings__hint { display: none; }
+.settings__tabs { margin-top: 24px; }
+
+/* the shared pill: Home and Settings icons, then the time. The selected icon gets a white circle (like a tvOS segmented control). */
+.topcap {
+	position: relative; display: flex; flex-direction: row; align-items: center; height: 58px; padding: 0 6px 0 8px; border-radius: 29px;
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.07) 42%, rgba(255, 255, 255, 0.16) 100%), var(--wp-blur, var(--glass-fallback));
+	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-position: 0 0, var(--dev-left, 0px) var(--dev-top, 0px); background-repeat: no-repeat;
+	background-color: rgba(30, 36, 50, 0.30);
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.9), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.42), inset 0 0 14px rgba(255, 255, 255, 0.10), 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+.topcap .pill { width: 42px; height: 42px; border-radius: 21px; margin: 0 4px 0 0; background-image: none; background-color: transparent; box-shadow: none; }
+.topcap .pill svg { width: 26px; height: 26px; }
+.topcap .pill__label { top: 62px; }
+.topcap .pill--focused { background-color: #fff; transform: scale(1.1); }
+.topcap .pill--focused svg { stroke: #111; }
+.topcap .clock { background-image: none; background-color: transparent; box-shadow: none; padding: 0 20px 0 10px; border-radius: 0; height: 58px; margin: 0; }
+
+/* ---------- the time pill is a button; its menu is a narrow glass list ---------- */
+.topcap { padding: 0 6px; transition: transform var(--motion-focus-ms) ease-out; }
+.topcap .clock { padding: 0 22px; }
+.topcap--focused, .topcap--open { transform: scale(1.06); background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.20) 55%, rgba(255, 255, 255, 0.34)), var(--wp-blur, var(--glass-fallback)); }
+.topcap .pill__label { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); font-size: 20px; white-space: nowrap; opacity: 0; transition: opacity var(--motion-focus-ms) ease-out; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
+.topcap--focused .pill__label { opacity: 1; }
+.panel--menu { width: 440px; padding: 16px; top: 150px; }
+.menu__row { display: flex; flex-direction: row; align-items: center; padding: 0 24px; height: 76px; margin-bottom: 6px; border-radius: 38px; font-size: 28px; color: var(--color-text-primary); }
+.menu__row:last-child { margin-bottom: 0; }
+.menu__row .tile__glyph { position: static; width: 34px; height: 34px; margin-right: 20px; flex: 0 0 auto; }
+.menu__row--focused { background-color: #fff; color: #111; }
+.menu__row--focused .tile__glyph { stroke: #111; }
+
+/* ---------- hold-OK menu, move hint, Quick Controls, option values ---------- */
+.panel--ctx { left: 50%; right: auto; margin-left: -220px; top: 300px; }
+.movehint { position: absolute; left: 0; right: 0; top: 120px; text-align: center; font-size: 26px; color: var(--color-text-primary); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); z-index: 5; }
+.screen--moving .tile--focused { transform: scale(1.14); }
+.panel--controls { width: 680px; padding: 26px 22px 18px; top: 120px; }
+.panel--controls .panel__title { margin: 0 0 16px 14px; }
+.qc__row { justify-content: flex-start; }
+.qc__label { flex: 1 1 auto; }
+.qc__value { flex: 0 0 auto; font-size: 26px; opacity: 0.85; }
+.qc__bar { flex: 0 0 220px; height: 10px; margin-right: 22px; border-radius: 5px; background: rgba(255, 255, 255, 0.28); overflow: hidden; }
+.qc__fill { display: block; height: 100%; background: currentColor; border-radius: 5px; }
+.qc__row .switch { flex: 0 0 auto; }
+.option__value { flex: 0 0 auto; font-size: var(--font-option-label); color: var(--color-text-primary); padding: 0 8px; }
+
+/* ---------- wallpaper favourites, night dimming ---------- */
+.wp__fav { position: absolute; left: 12px; top: 12px; width: 38px; height: 38px; border-radius: 50%; background: rgba(0, 0, 0, 0.55); color: #ffd60a; text-align: center; line-height: 38px; font-size: 22px; }
+html.night #wpimage { opacity: 0.55; }
+
+/* ---------- pointer ---------- */
+.qc__bar, .qc__value { cursor: pointer; }
+
+/* ---------- folders, status pill, pointer tilt ---------- */
+.tile__folder { position: absolute; left: 12%; top: 14%; width: 76%; height: 72%; display: flex; flex-wrap: wrap; justify-content: space-between; align-content: space-between; }
+.tile__mini { width: 47%; height: 47%; border-radius: 10px; background: rgba(255, 255, 255, 0.14) center / cover no-repeat; }
+.panel--folder { left: 50%; right: auto; margin-left: -380px; top: 250px; }
+.pill.status { width: auto; padding: 0 26px; color: var(--color-text-primary); pointer-events: none; }
+.status svg { position: static; left: auto; top: auto; width: 28px; height: 28px; flex: 0 0 auto; margin-right: 14px; }
+.pill.status { background-image: none; background-color: transparent; box-shadow: none; padding: 0 22px 0 0; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75); }
+.status__text { font-weight: 500; opacity: 0.92; }
+.status svg { filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6)); }
+.status__text { font-size: 22px; margin-right: 18px; white-space: nowrap; }
+.status__text:last-child { margin-right: 0; }
+.status__off { font-size: 20px; margin-right: 14px; opacity: 0.8; }
+.row .tile--focused .tile__box { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--motion-focus-scale)) translateY(-6px); }
+
+/* ---------- tvOS status: bare icons; date and weather as the menu header ---------- */
+.menu__head { padding: 6px 24px 14px; margin-bottom: 8px; font-size: 24px; color: var(--color-text-primary); opacity: 0.9; display: flex; flex-direction: column; border-bottom: 1px solid rgba(255, 255, 255, 0.18); }
+.menu__head span { margin-top: 4px; font-size: 21px; opacity: 0.8; }
+.pill.status { padding: 0 8px 0 0; }
+.screen > .pill.status { position: absolute; top: 64px; left: var(--layout-edge-padding); height: 58px; margin: 0; z-index: 5; }
+.screen > .pill.status svg { margin: 0 14px 0 0; }
+
+/* ---------- top-left status: icons, then date over weather ---------- */
+.screen > .pill.status { height: auto; min-height: 58px; align-items: center; }
+.status__icons { display: flex; flex-direction: row; align-items: center; }
+.status__lines { display: flex; flex-direction: column; justify-content: center; margin-left: 4px; }
+.status__date { font-size: 26px; font-weight: 600; line-height: 1.2; opacity: 0.95; white-space: nowrap; }
+.status__weather { font-size: 21px; line-height: 1.25; opacity: 0.78; white-space: nowrap; }
+.status__icons:empty { display: none; }
+
+/* ---------- network line in Quick Controls ---------- */
+.qc__net { display: flex; flex-direction: row; align-items: center; margin: -6px 0 12px 14px; font-size: 22px; opacity: 0.8; }
+.qc__net svg { position: static; width: 26px; height: 26px; margin-right: 10px; flex: 0 0 auto; }
+
+/* ---------- time top left ---------- */
+.screen > .pill.status { align-items: center; }
+.screen > .pill.status .clock { background: none; box-shadow: none; padding: 0; margin: 0 22px 0 0; border-radius: 0; height: auto; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7); }
+.screen > .pill.status .clock__time { font-size: 52px; font-weight: 300; line-height: 1; letter-spacing: 0; }
+.screen > .pill.status .clock__period { font-size: 22px; }
+
+/* ---------- Control Center: glass tiles (no live blur: the panel's glass is the pre-blurred wallpaper copy) ---------- */
+.panel--cc { width: 700px; padding: 26px 26px 26px; top: 130px; border-radius: 48px; }
+.cc__top { display: flex; flex-direction: row; justify-content: space-between; align-items: baseline; margin: 0 8px 18px; }
+.cc__title { font-size: 30px; color: var(--color-text-primary); letter-spacing: 0.02em; }
+.cc__net { font-size: 22px; opacity: 0.75; color: var(--color-text-primary); }
+.cc__row { display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 16px; }
+.cc__tile { width: 322px; height: 96px; border-radius: 48px; display: flex; flex-direction: row; align-items: center; padding: 0 18px 0 16px; box-sizing: border-box; color: var(--color-text-primary); background: rgba(255, 255, 255, 0.16); box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.55), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.22); }
+.cc__badge { flex: 0 0 auto; width: 62px; height: 62px; border-radius: 31px; margin-right: 16px; background: rgba(255, 255, 255, 0.22); display: flex; align-items: center; justify-content: center; }
+.cc__badge svg, .cc__circle svg, .cc__slidertext svg { position: static; left: auto; top: auto; width: 32px; height: 32px; stroke: #fff; }
+.cc__text { min-width: 0; }
+.cc__name { font-size: 26px; font-weight: 600; white-space: nowrap; }
+.cc__sub { font-size: 21px; opacity: 0.8; white-space: nowrap; margin-top: 2px; }
+.cc__tile--on .cc__badge { background: #fff; }
+.cc__tile--on .cc__badge svg { stroke: #111; }
+.cc__tile--focused { background: #fff; color: #111; transform: scale(1.03); }
+.cc__tile--focused .cc__badge { background: rgba(0, 0, 0, 0.1); }
+.cc__tile--focused .cc__badge svg { stroke: #111; }
+.cc__row--round { padding: 4px 12px 0; }
+.cc__round { width: 130px; display: flex; flex-direction: column; align-items: center; }
+.cc__circle { width: 96px; height: 96px; border-radius: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.16); box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.55), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.22); }
+.cc__circle--focused { background: #fff; transform: scale(1.1); }
+.cc__circle--focused svg { stroke: #111; }
+.cc__label { margin-top: 10px; font-size: 20px; color: var(--color-text-primary); opacity: 0.85; white-space: nowrap; }
+.cc__slider { position: relative; height: 80px; border-radius: 40px; overflow: hidden; margin-top: 8px; background: rgba(255, 255, 255, 0.16); box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.55), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.22); }
+.cc__fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255, 255, 255, 0.55); }
+.cc__slidertext { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: row; align-items: center; padding: 0 26px; font-size: 26px; font-weight: 600; color: #111; }
+.cc__slidertext svg { margin-right: 14px; stroke: #111; }
+.cc__num { margin-left: auto; font-weight: 500; }
+.cc__slider--focused { box-shadow: 0 0 0 4px #fff; transform: scale(1.02); }
+
+/* ---------- Control Center polish ---------- */
+.screen > .pill.status { flex-direction: row; }
+.screen > .pill.status .clock { position: static; opacity: 1; flex: 0 0 auto; }
+.topbar .pill:last-child .pill__label { left: auto; right: 0; transform: none; }
+.panel--cc { top: 150px; }
+.cc__tile, .cc__circle, .cc__slider { background: rgba(28, 34, 48, 0.34); }
+.cc__tile--focused { background: #fff; }
+.cc__circle--focused { background: #fff; }
+
+/* ---------- date and time on one row ---------- */
+.screen > .pill.status { flex-direction: column; align-items: flex-start; justify-content: center; }
+.status__row { display: flex; flex-direction: row; align-items: baseline; }
+.status__row .status__date { font-size: 30px; font-weight: 500; margin-right: 16px; opacity: 1; }
+.screen > .pill.status .clock { margin: 0; }
+.screen > .pill.status .clock__time { font-size: 30px; font-weight: 500; }
+.screen > .pill.status .clock__period { font-size: 30px; font-weight: 500; margin-left: 8px; letter-spacing: 0; }
+.status__weather { margin-top: 4px; }
+
+/* ---------- smooth top-left type ---------- */
+.screen > .pill.status { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-variant-numeric: tabular-nums; text-shadow: 0 1px 16px rgba(0, 0, 0, 0.5), 0 0 2px rgba(0, 0, 0, 0.22); }
+.status__row .status__date, .screen > .pill.status .clock__time, .screen > .pill.status .clock__period { font-weight: 500; letter-spacing: -0.012em; }
+.status__row .status__date { margin-right: 12px; }
+.screen > .pill.status .clock__period { margin-left: 6px; }
+.status__weather { font-weight: 500; font-size: 22px; letter-spacing: -0.005em; opacity: 0.82; animation: status-in 600ms ease-out; }
+@keyframes status-in { from { opacity: 0; } to { opacity: 0.82; } }
+
+/* ---------- scrolling options list ---------- */
+.options { height: 660px; overflow: hidden; position: relative; padding-top: 0; }
+.options__track { transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1); will-change: transform; padding-top: 8px; }
+
+.options { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 36px, #000 calc(100% - 36px), transparent 100%); }
+.options__track { padding: 36px 0 36px; }
+
+/* ---------- scroll indicator beside the options list ---------- */
+.options-wrap { position: relative; width: 1100px; margin: 0 auto; }
+.options__bar { position: absolute; right: -34px; top: 40px; bottom: 40px; width: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.18); }
+.options__thumb { position: absolute; left: 0; right: 0; top: 0; border-radius: 3px; background: rgba(255, 255, 255, 0.75); transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1); }
+.options-wrap .options { height: 660px; }
+.options__bar { height: 580px; bottom: auto; }
+
+/* ---------- options list: use the full height, shorter fades ---------- */
+.options-wrap .options { height: 800px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%); }
+.options__track { padding: 22px 0 22px; }
+.options__bar { top: 26px; height: 740px; }
+
+/* ---------- scroll windows: room at the sides so the focus ring and shadow are never clipped ---------- */
+.options-wrap .options { width: 1128px; margin-left: -14px; padding: 0 14px; box-sizing: border-box; }
+.grid__viewport { padding: 16px 24px; margin: 0 -24px; }
+.wp__viewport { padding: 20px 16px 0; margin: -20px -16px 0; }
+.wp__viewport, .grid__viewport { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 26px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 26px), transparent 100%); }
+
+/* ---------- taller wallpaper window ---------- */
+.wp__viewport { height: 700px; }
+
+/* ---------- tvOS-like type ---------- */
+html, body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-optical-sizing: auto; letter-spacing: -0.011em; }
+.tile__label { font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55), 0 0 2px rgba(0, 0, 0, 0.25); text-align: center; }
+.panel .tile__label { font-weight: 600; }
+.settings__title, .panel__title, .cc__title { font-weight: 600; letter-spacing: -0.02em; }
+.option__label { font-weight: 600; letter-spacing: -0.014em; }
+.tab, .wp__chip, .settings__button { font-weight: 600; }
+
+/* five round buttons in Control Center */
+.cc__round { width: 112px; }
+.cc__row--round { padding: 4px 4px 0; }
+
+/* six round buttons in Control Center */
+.cc__round { width: 100px; }
+.cc__label { font-size: 19px; }
+
+/* ---------- icons: small square icons stay sharp on a tile of their own colour ---------- */
+.tile__image--icon { left: 50%; top: 50%; width: auto; height: 66%; max-width: 70%; transform: translate(-50%, -50%); object-fit: contain; border-radius: 16%; }
+
+/* ---------- panels: no entry animation, glass placed with a fixed offset instead of background-attachment: fixed ---------- */
+.panel { animation: none; box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.5), 0 10px 24px rgba(0, 0, 0, 0.3); }
+.panel { --pw: 760px; --pt: 190px; background-attachment: scroll, scroll; background-position: 0 0, calc(var(--pw) + var(--layout-edge-padding) - 1920px) calc(-1 * var(--pt)); }
+.panel--cc { --pw: 700px; --pt: 150px; }
+.panel--ctx { background-position: 0 0, -740px -300px; }
+.panel--folder { background-position: 0 0, -580px -250px; }
+
+/* ---------- smoother dock: no clip on the tile that scales; the rounded corners are on what is drawn ---------- */
+.tile__box { overflow: visible; }
+.tile__image { border-radius: inherit; }
+.tile__image--icon { border-radius: 16%; }
+.tile__monogram { border-radius: inherit; }
+.row:not(.row--dock) .tile--focused .tile__box::after { border-radius: inherit; }
+.tile__folder { border-radius: inherit; }
+
+/* video wallpaper playing: hide the still picture that would otherwise cover it, and give the glass a plain tinted fill (it is made from a blurred copy of the still picture, which would not match the video) */
+html.wp-video #wpimage { display: none; }
+html.wp-video { --wp-blur: linear-gradient(rgba(70, 76, 96, 0.90), rgba(44, 48, 66, 0.94)) !important; --wp-bg: linear-gradient(rgba(70, 76, 96, 0.90), rgba(44, 48, 66, 0.94)) !important; }
+
+/* dark mode: the original blurred-wallpaper glass (the picture or video is not dimmed) */
+
+/* glass over the video: see-through with a light tint (later and more specific than the plain fills above) */
+html.wp-video { --wp-blur: linear-gradient(rgba(20, 24, 38, 0.30), rgba(20, 24, 38, 0.30)) !important; --wp-bg: linear-gradient(rgba(20, 24, 38, 0.46), rgba(20, 24, 38, 0.46)) !important; }
+html.dark.wp-video { --wp-blur: linear-gradient(rgba(8, 10, 18, 0.50), rgba(8, 10, 18, 0.50)) !important; --wp-bg: linear-gradient(rgba(8, 10, 18, 0.62), rgba(8, 10, 18, 0.62)) !important; }
+
+/* the dock slides away (Hide the dock) */
+.rows { transition: top 240ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 220ms ease; }
+.rows--hidden { transform: translateY(1300px) !important; opacity: 0; pointer-events: none; }
+
+/* dock hidden: the top-right buttons go too, and a small chevron at the bottom shows the way back */
+.topbar { transition: opacity 220ms ease; }
+.screen--dockhidden .topbar { opacity: 0; pointer-events: none; }
+.dockhint { position: absolute; left: 50%; bottom: 34px; margin-left: -26px; width: 52px; height: 30px; opacity: 0; transition: opacity 260ms ease; pointer-events: none; }
+.dockhint svg { width: 52px; height: 30px; fill: none; stroke: rgba(255, 255, 255, 0.62); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25)); }
+.screen--dockhidden .dockhint { opacity: 1; pointer-events: auto; }
+
+/* ---------- light look (Appearance: Light): bright frosted glass, dark text ---------- */
+html.light {
+	--color-text-primary: #14151b !important;
+	--color-text-secondary: #43465a !important;
+	--color-text-muted: #5d6072 !important;
+}
+/* light glass: the blurred wallpaper copy, lifted with a light colour (screen blend), so it reads as frosted glass with the picture showing through */
+html.light .row:not(.row--dock)::before, html.light .clock, html.light .row--dock .tile__box, html.light .wp__chip, html.light .option, html.light .settings__button,
+html.light .pill, html.light .panel, html.light .tabbar, html.light .topcap {
+	background-color: rgb(120, 128, 148);
+	background-blend-mode: normal, screen;
+}
+html.light.wp-video {
+	--wp-blur: linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.42)) !important;
+	--wp-bg: linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)) !important;
+}
+/* over the video the glass is see-through: no opaque base colour, just a light tint */
+html.light.wp-video .row:not(.row--dock)::before, html.light.wp-video .clock, html.light.wp-video .row--dock .tile__box, html.light.wp-video .wp__chip, html.light.wp-video .option, html.light.wp-video .settings__button,
+html.light.wp-video .pill, html.light.wp-video .panel, html.light.wp-video .tabbar, html.light.wp-video .topcap {
+	background-color: transparent;
+	background-blend-mode: normal;
+}
+html.light .row:not(.row--dock)::before { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.85), 0 18px 40px rgba(20, 24, 40, 0.20); }
+html.light .row:not(.row--dock)::after { display: none; }
+html.light .clock, html.light .row--dock .tile__box { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.85), 0 8px 18px rgba(20, 24, 40, 0.18); }
+html.light .wp__chip, html.light .option, html.light .settings__button { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(20, 24, 40, 0.12); }
+html.light .status { background-image: none !important; background-color: transparent !important; box-shadow: none !important; }
+html.light .status, html.light .status * { color: #fff !important; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45); }
+html.light .screen.screen--settings, html.light .wp-image .screen.screen--settings, html.light .wp-video .screen.screen--settings { background: rgba(243, 244, 249, 0.97); }
+html.light .tab--active { background-color: rgba(20, 24, 40, 0.10); color: #14151b; }
+html.light .settings__hint, html.light .option__description { color: rgba(20, 22, 32, 0.62); }
+html.light .tab { color: rgba(20, 22, 32, 0.72); }
+html.light .tab--focused, html.light .wp__chip--focused, html.light .settings__button--focused, html.light .menu__row--focused, html.light .cc__tile--focused, html.light .cc__circle--focused, html.light .pill--focused, html.light .topcap--focused { background-color: #14151b !important; color: #fff !important; box-shadow: 0 8px 18px rgba(20, 24, 40, 0.30); }
+html.light .panel { background-image: linear-gradient(rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.10)), var(--wp-blur) !important; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.85), 0 24px 60px rgba(20, 24, 40, 0.28); }
+html.light .cc__tile { background: rgba(255, 255, 255, 0.36); box-shadow: 0 2px 8px rgba(20, 24, 40, 0.10); }
+html.light .cc__badge { background: rgba(20, 24, 40, 0.10); }
+html.light .cc__badge svg, html.light .cc__circle svg, html.light .menu__row svg, html.light .pill svg, html.light .topcap svg { stroke: rgba(20, 22, 32, 0.72); }
+html.light .cc__tile--on .cc__badge { background: #14151b; }
+html.light .cc__tile--on .cc__badge svg { stroke: #fff; }
+html.light .cc__circle { background: rgba(255, 255, 255, 0.42); box-shadow: 0 2px 8px rgba(20, 24, 40, 0.10); }
+html.light .cc__slider { background: rgba(255, 255, 255, 0.40); box-shadow: 0 2px 8px rgba(20, 24, 40, 0.10); }
+html.light .cc__fill { background: rgba(20, 24, 40, 0.20); }
+html.light .cc__slidertext, html.light .cc__slidertext svg { color: #14151b; stroke: #14151b; }
+html.light .cc__tile--focused .cc__badge { background: rgba(255, 255, 255, 0.18); }
+html.light .cc__tile--focused .cc__badge svg, html.light .cc__circle--focused svg, html.light .menu__row--focused svg, html.light .pill--focused svg, html.light .topcap--focused svg { stroke: #fff; }
+html.light .cc__slider--focused { box-shadow: 0 0 0 4px #14151b; }
+
+.wp__note { margin: -8px 6px 16px; font-size: 22px; line-height: 1.35; color: var(--color-text-secondary); max-width: 1500px; }
+
+/* video wallpaper: slide the rows with transform (compositor only), not top (layout + repaint every frame) */
+html.wp-video .rows { transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 220ms ease; will-change: transform; }
+html.wp-video .rows--lower { top: var(--layout-rows-top); transform: translateY(-300px); }
+
+/* dock bar: a bit more see-through */
+.row:not(.row--dock)::before { opacity: 0.74; }
+
+/* Settings lists: no mask-image fade (it costs an off-screen draw per frame) */
+.options, .options-wrap .options, .wp__viewport, .grid__viewport { -webkit-mask-image: none; mask-image: none; }
+
+/* Settings: frosted and see-through like the dock (the blurred wallpaper copy on a faded layer behind the content) */
+.screen.screen--settings, .wp-image .screen.screen--settings, .wp-video .screen.screen--settings { background: transparent !important; background-image: none !important; isolation: isolate; }
+.screen--settings::before {
+	content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: -1; pointer-events: none; opacity: 0.9; animation: none;
+	background-image: linear-gradient(rgba(10, 12, 22, 0.46), rgba(10, 12, 22, 0.58)), var(--wp-blur, none);
+	background-size: cover; background-position: center; background-repeat: no-repeat; background-color: rgb(24, 28, 40);
+}
+html.light .screen--settings::before {
+	background-image: linear-gradient(rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.10)), var(--wp-blur, none);
+	background-color: rgb(120, 128, 148); background-blend-mode: normal, screen;
+}
+html.light.wp-video .screen--settings::before { background-color: transparent; background-blend-mode: normal; }
+html.in-settings .screen:not(.screen--settings) { visibility: hidden; }
+/* over the video the glass is clear, so Settings gets a stronger fill: the text must stay readable */
+html.wp-video .screen--settings::before { background-image: linear-gradient(rgba(10, 12, 22, 0.76), rgba(10, 12, 22, 0.84)); opacity: 1; }
+html.light.wp-video .screen--settings::before { background-image: linear-gradient(rgba(246, 247, 251, 0.84), rgba(240, 242, 248, 0.90)); }
+
+/* aerial view while the dock is away: date, time and weather drop to the bottom left; the place and a description show at the bottom right */
+.status { transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.screen--dockhidden .status { transform: translateY(830px); }
+.videocap { position: absolute; right: var(--layout-edge-padding); top: calc(var(--layout-header-top) + 806px); max-width: 800px; text-align: right; opacity: 0; transition: opacity 420ms ease; pointer-events: none; }
+.screen--dockhidden .videocap { opacity: 1; }
+html:not(.wp-video) .videocap { display: none; }
+.videocap__place { font-size: 36px; font-weight: 600; letter-spacing: 0.01em; color: #fff; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6); }
+.videocap__text { margin-top: 6px; font-size: 22px; line-height: 1.3; color: rgba(255, 255, 255, 0.86); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+
+/* the time: fixed-width digits, a narrow centred colon raised to the middle of the figures */
+.clock__time { display: inline-flex; align-items: center; letter-spacing: 0 !important; font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1, 'case' 1; }
+.clock__colon { display: inline-block; width: 0.34em; text-align: center; opacity: 0.78; margin: 0; padding: 0; position: relative; top: -0.04em; }
+.clock__period { align-self: center; }
+
+/* video wallpaper: the lower-rows backdrop is a see-through veil, not an opaque panel; none at all while the dock is away */
+html.wp-video .screen--lower::before { background-color: transparent; background-image: linear-gradient(rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.42)); }
+.screen--dockhidden::before { display: none; }
+/* Settings labels read as secondary text, not muted grey, on the frosted background */
+.wp__title { color: var(--color-text-secondary); }
+.wp__item--focused .wp__title { color: var(--color-text-primary); }

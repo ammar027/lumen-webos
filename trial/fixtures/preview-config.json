@@ -1,0 +1,34 @@
+{
+  "appIds": [
+    "youtube.leanback.v4",
+    "com.disney.disneyplus-prod",
+    "com.apple.appletv",
+    "com.apple.applemusic",
+    "amazon",
+    "hulu",
+    "org.jellyfin.webos",
+    "com.wbd.stream",
+    "com.peacock.tv",
+    "netflix",
+    "com.tubitv.ott.tubi",
+    "cdp-30",
+    "com.webos.app.browser",
+    "org.webosbrew.hbchannel"
+  ],
+  "sourceIds": null,
+  "useHomebrew": false,
+  "showWeather": false,
+  "wallpaper": "local:0",
+  "idleMinutes": 0,
+  "photoSeconds": 30,
+  "wpAutoMinutes": 0,
+  "clockFormat": "24h",
+  "darkMode": "on",
+  "dockHide": "off",
+  "recentMode": "off",
+  "recentIds": [
+    "youtube.leanback.v4"
+  ],
+  "folders": [],
+  "seeded": true
+}
