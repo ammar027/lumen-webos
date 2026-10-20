@@ -29,7 +29,8 @@ def main():
     shutil.copy2(ROOT / 'app-assets/geist-wght.woff2', target / 'src/assets/geist-wght.woff2')
     generate_assets(target)
     (target / '.lumen-trial-source.json').write_text(json.dumps({
-        'upstream': UPSTREAM, 'revision': REVISION, 'trialVersion': '0.3.5'
+        'upstream': UPSTREAM, 'revision': REVISION,
+        'trialVersion': json.loads((target / 'public/appinfo.json').read_text())['version']
     }, indent=2) + '\n')
     print(f'Trial prepared at {target}. Next: npm --prefix "{target}" ci')
 

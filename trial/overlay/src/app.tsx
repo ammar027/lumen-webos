@@ -228,6 +228,7 @@ export function App () {
 
 	const options: OptionItem[] = useMemo(() => [
   {id:'recent-mode',label:'Recent apps',description:'Keep the app grid quiet, show only apps not already on Home, or show all recently opened apps.',value:config.recentMode !== 'off',valueText:config.recentMode === 'off' ? 'Off' : config.recentMode === 'unique' ? 'Not on Home' : 'All recent'},
+  {id:'navigation-sounds',label:'Navigation sounds',description:'A quiet tick when the remote moves between apps on Home. Pointer movement stays silent.',value:config.navigationSounds === 'soft',valueText:config.navigationSounds === 'soft' ? 'Soft' : 'Off'},
 		{
 			id: OPTION.useHomebrew,
 			label: 'Live app list via Homebrew Channel',
@@ -312,7 +313,7 @@ export function App () {
 			value: config.showAmPm
 		},
   {id:'restart-tv',label:'Restart TV',description:'Restart the television. A confirmation opens before anything changes.',value:false,valueText:'Open'}
-	], [config.recentMode, config.photoSeconds, config.weatherCountry, config.dockHide, config.videoPlaces, config.videoClip, config.darkMode, config.language, config.clockFormat, config.useHomebrew, config.videoWallpaper, config.showAmPm, config.idleMinutes, config.wpAutoMinutes, config.nightDim, config.showAllApps, config.showWeather, config.weatherCity]);
+	], [config.navigationSounds, config.recentMode, config.photoSeconds, config.weatherCountry, config.dockHide, config.videoPlaces, config.videoClip, config.darkMode, config.language, config.clockFormat, config.useHomebrew, config.videoWallpaper, config.showAmPm, config.idleMinutes, config.wpAutoMinutes, config.nightDim, config.showAllApps, config.showWeather, config.weatherCity]);
 
 	const wallpaper: WallpaperTab = useMemo(() => {
 		const entries: WallpaperEntry[] = [
@@ -403,6 +404,7 @@ export function App () {
 
 	const onOption = useCallback((optionId: string) => {
   if(optionId === 'recent-mode') {const modes:UserConfig['recentMode'][]=['off','unique','all'];updateConfig({...config,recentMode:modes[(modes.indexOf(config.recentMode)+1)%modes.length]});}
+  else if(optionId === 'navigation-sounds')updateConfig({...config,navigationSounds:config.navigationSounds === 'soft' ? 'off' : 'soft'});
   else if(optionId === 'restart-tv')setRestartConfirm(true);
 		else if (optionId === 'photo-duration') { const choices = [15,30,60,120]; updateConfig({...config,photoSeconds:choices[(choices.indexOf(config.photoSeconds)+1)%choices.length]}); }
   else if (optionId === 'photo-refresh') { showToast('Refreshing photos…'); refreshPhotos(photoSource(config.wallpaper),true).then(() => showToast('Photo collection updated')).catch((e) => showToast(e.message,'error')); }
@@ -451,7 +453,7 @@ export function App () {
 	return (
 		<>
 			{/* Home stays mounted under Settings so it keeps its focus position. */}
-			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
+			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} navigationSounds={config.navigationSounds} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
 			{screen === 'settings' && <Settings tabs={tabs} wallpaper={wallpaper} options={options} active={!restartConfirm} onToggle={onToggle} onReorder={onReorder} onOption={onOption} onClose={() => setScreen('home')} />}
 			{controls && <ControlCenter
     idleMinutes={config.idleMinutes} inputCount={shownInputs.length} network={network} focusInputs={controlFocusInputs}

@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.5), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.6), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -47,6 +47,14 @@ own installed apps. Existing trial preferences continue to load from localStorag
 - Five apps on the first row; Down expands a five-column grid and Back collapses it.
   Hold OK retains app moving, folders and context menus. Recent apps are optional:
   Off, Not on Home, or All recent, without deleting the history.
+- Optional Navigation sounds (Off / Soft) add an original, quiet 45 ms tick only
+  when the remote moves between app tiles on Home. New installs and existing
+  preferences default to Off. Pointer hover, blocked movement and focus restoration
+  stay silent. Repeats are rate limited, playback never overlaps, and leaving Home
+  cancels pending audio. One cached Web Audio buffer avoids media-element conflicts
+  with video wallpapers. The engine warms silently before accepting a tick, and
+  suspends after playback ends and a short inactivity period. No system volume
+  or mute setting is changed.
 - Native icons are read in bounded chunks, with independent failure handling and
   cache invalidation by path, file size and modification time. A failed large icon
   no longer discards every other app's icon.
@@ -70,7 +78,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.5_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.6_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -101,13 +109,25 @@ active versus last-used inputs and light appearance. Artifacts go to the ignored
 `.trial-evidence/` directory. Set `CHROMIUM_PATH` to use an existing Chromium binary
 instead of Playwright's downloaded browser.
 
-The 0.3.5 implementation was installed on an LG 86UN8570AUD, webOS 5.6.2-21,
+The navigation-sound checks separately cover migration/default Off, Soft persistence,
+actual focus changes, silent pointer/boundary behavior, rate limiting, no overlap,
+Settings cancellation, delayed audio unlock, a stalled startup audio clock and
+unavailable audio. They instrument an audio fixture; perceived loudness and physical
+output require a TV listening check.
+
+The 0.3.5 UI implementation was installed on an LG 86UN8570AUD, webOS 5.6.2-21,
 firmware 04.64.00, Chromium 68. Native package checksums, text geometry and navigation
 were verified. The owner tested the physical remote, Inputs, Control Center and
 photo frame, and accepted the final edge treatment. Earlier native checks changed
 and restored sound, verified the sleep countdown and Off state, and routed an HDMI
 input. Public fixture tests are separate from that physical evidence; the public
 build uses generic cards and gradients instead of the owner's local artwork.
+
+The 0.3.6 audio update was also installed on that TV. Native Web Audio nodes started
+and completed both 45 ms ticks without overlap, blocked arrows stayed silent, Off
+suppressed playback, and the engine suspended after inactivity. The real Settings
+control persisted Soft while other saved preferences were preserved. Physical
+loudness and perceived latency are awaiting the owner's listening check.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

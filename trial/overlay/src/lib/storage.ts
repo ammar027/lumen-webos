@@ -6,6 +6,7 @@ import trialSeed from '../config/trialSeed.json';
 import {DEFAULT_APP_IDS} from '../config/catalog';
 
 export interface UserConfig {
+ navigationSounds: 'off' | 'soft';
  recentMode: 'off' | 'unique' | 'all';
  lastInput: string;
  photoSeconds: number;
@@ -58,6 +59,7 @@ export interface UserConfig {
 }
 
 export const DEFAULT_CONFIG: UserConfig = {
+ navigationSounds: 'off',
  recentMode: 'off',
  lastInput: '',
 	photoSeconds: 30,
@@ -92,6 +94,7 @@ export function loadConfig (): UserConfig {
 		if (!raw) return {...DEFAULT_CONFIG, ...trialSeed};
 		const parsed = JSON.parse(raw) as Partial<UserConfig>;
 		return {
+   navigationSounds: parsed.navigationSounds === 'soft' ? 'soft' : 'off',
    recentMode: parsed.recentMode === 'unique' || parsed.recentMode === 'all' ? parsed.recentMode : 'off',
    lastInput: typeof parsed.lastInput === 'string' ? parsed.lastInput : '',
 			photoSeconds: [15,30,60,120].indexOf(Number(parsed.photoSeconds)) >= 0 ? Number(parsed.photoSeconds) : 30,

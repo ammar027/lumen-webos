@@ -1,6 +1,6 @@
 import {t as tr} from '../lib/i18n';
 import {VideoCaption} from '../components/VideoCaption';
-import {useCallback, useEffect, useRef, useState} from 'preact/hooks';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {Clock} from '../components/Clock';
 import {Glyph} from '../components/Glyph';
 
@@ -8,6 +8,7 @@ import {Tile, type TileModel} from '../components/Tile';
 import {useKeys, clamp, type NavKey} from '../hooks/useKeys';
 import {useOkPress} from '../hooks/useOkPress';
 import {Status} from '../components/Status';
+import {playNavigationTick, setNavigationSoundMode, stopNavigationSound, type NavigationSoundMode} from '../lib/navigationSound';
 
 export interface HomeRow {
 	id: string;
@@ -24,6 +25,7 @@ interface Props {
 	/** what the time pill's menu lists (LG Home, Settings, Start Screensaver) */
 	menuItems: TileModel[];
 	active: boolean;
+ navigationSounds?: NavigationSoundMode;
 	onActivate: (rowId: string, item: TileModel) => void;
 	/** show AM/PM beside the time (12-hour clocks) */
 	showPeriod?: boolean;
@@ -84,7 +86,7 @@ const MENU_KEY = 'menu';
  *  - Up from the first row reaches the top bar (Inputs button, time pill); Down goes back to the same app.
  *  - OK on Inputs opens the inputs panel, OK on the time pill opens the menu; Back closes either.
  *  - The second row stays hidden until the remote goes down to it. */
-export function Home ({rows, topItems, menuItems, active, onActivate, showPeriod, onEdit, folders, weatherText, dockHide}: Props) {
+export function Home ({rows, topItems, menuItems, active, navigationSounds = 'off', onActivate, showPeriod, onEdit, folders, weatherText, dockHide}: Props) {
 	const nav = useRef<Nav>({engaged: true, zone: 'rows', rowIndex: 0, scrollIndex: 0, columns: {}, topIndex: 0, menuIndex: 0, ctxIndex: 0, moving: null, swallowOk: false, suppressClick: false, folder: '', folderIndex: 0, ctxFrom: 'rows', mode: 'key', dockHidden: false});
 	const latest = useRef({rows, topItems, menuItems, onActivate, onEdit, folders, dockHide});
 	latest.current = {rows, topItems, menuItems, onActivate, onEdit, folders, dockHide};
@@ -92,6 +94,13 @@ export function Home ({rows, topItems, menuItems, active, onActivate, showPeriod
 	useEffect(() => { const id = window.setTimeout(() => setLate(true), 3500); return () => window.clearTimeout(id); }, []);
 	const [, redraw] = useState(0);
 	const render = () => redraw((n) => n + 1);
+
+ useLayoutEffect(() => {
+  setNavigationSoundMode(active ? navigationSounds : 'off');
+  const hidden = () => {if(document.hidden)stopNavigationSound();};
+  document.addEventListener('visibilitychange',hidden);
+  return () => {setNavigationSoundMode('off');document.removeEventListener('visibilitychange',hidden);};
+ },[active,navigationSounds]);
 
 	// coming back to the launcher from another app: rest again
 	useEffect(() => {
@@ -234,7 +243,7 @@ export function Home ({rows, topItems, menuItems, active, onActivate, showPeriod
 		}, 8000);
 	};
 
-	const handleKey = useCallback((key: NavKey): boolean => {
+	const navigate = useCallback((key: NavKey): boolean => {
 		const n = nav.current;
 		setLate(true);
 		const {rows: allRows, topItems: tops, menuItems: menu, onEdit: edit, folders: fl} = latest.current;
@@ -316,7 +325,19 @@ export function Home ({rows, topItems, menuItems, active, onActivate, showPeriod
 		return true;
 	}, []);
 
-	useKeys(handleKey, active);
+ const handleKey = useCallback((key: NavKey): boolean => {
+  const focusedApp = () => {
+   const n = nav.current, allRows = latest.current.rows;
+   if(!n.engaged || n.dockHidden || n.moving || n.zone !== 'rows')return null;
+   const row = allRows[clamp(n.rowIndex,0,allRows.length - 1)];
+   const item = row && row.items[columnOf(row)];
+   return item ? row.id + '/' + item.key : null;
+  };
+  const before = focusedApp(), handled = navigate(key), after = focusedApp();
+  if((key === 'left' || key === 'right' || key === 'up' || key === 'down') && before && after && before !== after)playNavigationTick();
+  return handled;
+ },[navigate]);
+ useKeys(handleKey, active);
 
 	const n = nav.current;
 	const rowIndex = clamp(n.rowIndex, 0, Math.max(0, rows.length - 1));

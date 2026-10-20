@@ -17,5 +17,6 @@ try {
   await new Promise(resolve=>setTimeout(resolve,200));
  }
  if(!ready)throw new Error('Trial preview did not start: '+log);
- for(const file of ['icon-tests.mjs','browser-tests.mjs','grid-edit-tests.mjs','visual-tests.mjs','panel-tests.mjs'])await run(file);
+ const selected=process.argv.slice(2);
+ for(const file of selected.length?selected:['icon-tests.mjs','browser-tests.mjs','grid-edit-tests.mjs','visual-tests.mjs','panel-tests.mjs','navigation-sound-tests.mjs'])await run(file);
 } finally {server.kill('SIGTERM');}
