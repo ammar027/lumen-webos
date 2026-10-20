@@ -1,28 +1,46 @@
 import {isWebOS, lunaCall} from './luna';
 
-/** Original 26 ms brushed click. Native PCM avoids webOS 5's Web Audio delay.
+/** Cached focus cue. Native PCM avoids webOS 5's Web Audio delay.
  * No extra rate limit, volume writes, media element or delayed replay. */
 export type NavigationSoundMode = 'off' | 'soft';
 type Backend = 'unknown' | 'probing' | 'native' | 'web';
 let enabled = false;
+let homeActive = false;
 let backend: Backend = 'unknown';
 let context: AudioContext | undefined;
 let buffer: AudioBuffer | undefined;
 let playing: AudioBufferSourceNode | undefined;
+let keepalive: AudioBufferSourceNode | undefined;
+let keepaliveBuffer: AudioBuffer | undefined;
 let resuming = false;
+let pcm: Float32Array | undefined;
+let loadAttempted = false;
+const SOUND = 'navigation-focus-v1';
 
 function suspend(): void {
  try {if(context && context.state === 'running')void context.suspend().catch(() => undefined);} catch { /* optional API */ }
 }
 
+function stopSource(source: AudioBufferSourceNode | undefined): void {
+ if(!source)return;
+ source.onended = null;
+ try {source.stop();} catch { /* already finished */ }
+ try {source.disconnect();} catch { /* already disconnected */ }
+}
+
+function stopCue(): void {
+ const previous = playing;playing = undefined;stopSource(previous);
+}
+
 export function stopNavigationSound(): void {
- const previous = playing; playing = undefined;
- if(previous) {
-  previous.onended = null;
-  try {previous.stop();} catch { /* already finished */ }
-  previous.disconnect();
- }
+ stopCue();
+ const previous = keepalive;keepalive = undefined;stopSource(previous);
  suspend();
+}
+
+export function setNavigationSoundActive(active: boolean): void {
+ homeActive = active;
+ if(!active)stopCue();
 }
 
 export function setNavigationSoundMode(mode: NavigationSoundMode): void {
@@ -30,7 +48,7 @@ export function setNavigationSoundMode(mode: NavigationSoundMode): void {
  if(!enabled || document.hidden)stopNavigationSound();else warmNavigationSound();
 }
 
-function nativeSound(name: 'navigation-ready' | 'navigation-click'): Promise<unknown> {
+function nativeSound(name: 'navigation-ready' | typeof SOUND): Promise<unknown> {
  // Commercial webOS 5 calls this sink "defaultapp" (OSE uses "pdefaultapp").
  // The bundled PCM has the same peak as the old Web Audio tick; leave gain alone.
  const fileName = decodeURIComponent(new URL(`sounds/${name}.pcm`,document.baseURI).pathname);
@@ -51,51 +69,71 @@ function warmNavigationSound(): void {
    });
   }
  }
- if(backend === 'web')warmWebAudio();
+ warmWebAudio();
 }
 
 function warmWebAudio(): void {
- if(resuming)return;
  try {
   if(!context || context.state === 'closed') {
    const Constructor = window.AudioContext || (window as Window & {webkitAudioContext?: typeof AudioContext}).webkitAudioContext;
    if(!Constructor)return;
-   context = new Constructor({latencyHint:'interactive'});buffer = clickBuffer(context);
+   context = new Constructor({latencyHint:'interactive'});buffer = undefined;keepaliveBuffer = undefined;
   }
   const ctx = context;
-  // Keep this context ready for the whole active Home session. Resuming on each
-  // tap adds latency; suspending only on exit/Off also avoids delayed unlocks.
-  if(ctx.state === 'suspended' || ctx.currentTime === 0) {
+  if(backend === 'web')prepareBuffer(ctx);
+  if(!keepalive) {
+   if(!keepaliveBuffer) {
+    keepaliveBuffer = ctx.createBuffer(1,Math.ceil(ctx.sampleRate / 10),ctx.sampleRate);
+    const data = keepaliveBuffer.getChannelData(0);let seed = 9001;
+    for(let i = 0;i < data.length;i++) {
+     seed = (1664525 * seed + 1013904223) >>> 0;
+     data[i] = (seed / 2147483648 - 1) * .0001;
+    }
+   }
+   // Digital zero did not prevent this TV from dropping isolated cues. This
+   // -80 dBFS peak dither survived its 16-bit output and passed the listening test.
+   const source = ctx.createBufferSource();source.buffer = keepaliveBuffer;
+   source.loop = true;source.connect(ctx.destination);source.start();keepalive = source;
+  }
+  // Keep the output ready through foreground panels, so Back does not retrigger
+  // its silence gate. Off, background and photo-frame mode stop the stream.
+  if(!resuming && (ctx.state === 'suspended' || ctx.currentTime === 0)) {
    resuming = true;
-   void ctx.resume().then(() => {if(!enabled || document.hidden)suspend();}).catch(() => undefined).finally(() => {resuming = false;});
+   void ctx.resume().then(() => {if(!enabled || document.hidden)stopNavigationSound();}).catch(() => undefined).finally(() => {resuming = false;});
   }
  } catch { /* optional audio must never block navigation */ }
 }
 
-function clickBuffer(ctx: AudioContext): AudioBuffer {
- const duration = .026;
- const result = ctx.createBuffer(1,Math.ceil(ctx.sampleRate * duration),ctx.sampleRate);
- const samples = result.getChannelData(0);
- // Deterministic, low-passed noise gives a small dry click instead of a musical
- // beep. Keep in sync with trial/generate-navigation-sound.py's bundled PCM.
- let random = 7321, low = 0, peak = 0;
- for(let i = 0;i < samples.length;i++) {
-  random = (1664525 * random + 1013904223) >>> 0;
-  low += .32 * (random / 2147483648 - 1 - low);
-  const t = i / ctx.sampleRate;
-  const envelope = Math.min(1,t / .0008) * Math.exp(-t / .0045) * Math.min(1,(duration - t) / .005);
-  samples[i] = low * envelope;peak = Math.max(peak,Math.abs(samples[i]));
+function prepareBuffer(ctx: AudioContext): void {
+ if(pcm && !buffer) {
+  buffer = ctx.createBuffer(1,pcm.length,48000);
+  buffer.getChannelData(0).set(pcm);
  }
- for(let i = 0;i < samples.length;i++)samples[i] *= .0252 / peak;
- return result;
+ if(pcm || loadAttempted)return;
+ loadAttempted = true;
+ // XHR also supports packaged file URLs on older webOS. Both playback paths
+ // use the same bundled mono 48 kHz S16LE cue, including optional local sound overrides.
+ const request = new XMLHttpRequest();
+ request.open('GET',new URL(`sounds/${SOUND}.pcm`,document.baseURI).href,true);
+ request.responseType = 'arraybuffer';
+ request.onload = () => {
+  const bytes = request.response as ArrayBuffer | null;
+  if((request.status !== 0 && (request.status < 200 || request.status >= 300)) ||
+    !bytes || !bytes.byteLength || bytes.byteLength % 2 || bytes.byteLength > 96000)return;
+  const data = new DataView(bytes);pcm = new Float32Array(bytes.byteLength / 2);
+  for(let i = 0;i < pcm.length;i++)pcm[i] = data.getInt16(i * 2,true) / 32768;
+  try {if(context && context.state !== 'closed')prepareBuffer(context);} catch { /* optional audio */ }
+ };
+ request.onerror = () => undefined;
+ request.send();
 }
 
 export function playNavigationTick(): void {
- if(!enabled || document.hidden)return;
+ if(!enabled || !homeActive || document.hidden)return;
  if(backend === 'native') {
   // Dispatch immediately for every accepted tile move. Never wait for the last
   // response or replay a failed/delayed request through another backend.
-  void nativeSound('navigation-click').catch(() => {
+  void nativeSound(SOUND).catch(() => {
    backend = 'web';if(enabled && !document.hidden)warmWebAudio();
   });
   return;
@@ -103,11 +141,10 @@ export function playNavigationTick(): void {
  if(backend !== 'web'){warmNavigationSound();return;}
  try {
   const ctx = context;
-  if(!ctx || ctx.state !== 'running' || ctx.currentTime === 0){warmWebAudio();return;}
+  if(!ctx || !buffer || ctx.state !== 'running' || ctx.currentTime === 0){warmWebAudio();return;}
   // A new movement replaces an unfinished click rather than dropping the move.
-  const previous = playing;
-  if(previous){previous.onended = null;previous.stop();previous.disconnect();}
-  const source = ctx.createBufferSource();source.buffer = buffer!;
+  stopCue();
+  const source = ctx.createBufferSource();source.buffer = buffer;
   source.connect(ctx.destination);
   source.onended = () => {if(playing === source)playing = undefined;source.disconnect();};
   playing = source;source.start();

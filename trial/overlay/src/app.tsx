@@ -453,7 +453,7 @@ export function App () {
 	return (
 		<>
 			{/* Home stays mounted under Settings so it keeps its focus position. */}
-			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} navigationSounds={config.navigationSounds} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
+			<Home rows={rows} topItems={TOP_ITEMS} menuItems={MENU_ITEMS} active={screen === 'home' && !controls && !inputsOpen && !photoFrame && !restartConfirm} navigationSounds={photoFrame ? 'off' : config.navigationSounds} onActivate={onActivate} showPeriod={config.showAmPm} onEdit={onEdit} folders={folderMap} weatherText={weatherText} dockHide={config.dockHide} />
 			{screen === 'settings' && <Settings tabs={tabs} wallpaper={wallpaper} options={options} active={!restartConfirm} onToggle={onToggle} onReorder={onReorder} onOption={onOption} onClose={() => setScreen('home')} />}
 			{controls && <ControlCenter
     idleMinutes={config.idleMinutes} inputCount={shownInputs.length} network={network} focusInputs={controlFocusInputs}

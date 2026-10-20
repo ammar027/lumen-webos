@@ -8,7 +8,7 @@ import {Tile, type TileModel} from '../components/Tile';
 import {useKeys, clamp, type NavKey} from '../hooks/useKeys';
 import {useOkPress} from '../hooks/useOkPress';
 import {Status} from '../components/Status';
-import {playNavigationTick, setNavigationSoundMode, stopNavigationSound, type NavigationSoundMode} from '../lib/navigationSound';
+import {playNavigationTick, setNavigationSoundActive, setNavigationSoundMode, stopNavigationSound, type NavigationSoundMode} from '../lib/navigationSound';
 
 export interface HomeRow {
 	id: string;
@@ -96,11 +96,15 @@ export function Home ({rows, topItems, menuItems, active, navigationSounds = 'of
 	const render = () => redraw((n) => n + 1);
 
  useLayoutEffect(() => {
-  setNavigationSoundMode(active ? navigationSounds : 'off');
-  const hidden = () => {if(document.hidden)stopNavigationSound();else setNavigationSoundMode(active ? navigationSounds : 'off');};
+  setNavigationSoundMode(navigationSounds);
+  const hidden = () => {if(document.hidden)stopNavigationSound();else setNavigationSoundMode(navigationSounds);};
   document.addEventListener('visibilitychange',hidden);
   return () => {setNavigationSoundMode('off');document.removeEventListener('visibilitychange',hidden);};
- },[active,navigationSounds]);
+ },[navigationSounds]);
+ useLayoutEffect(() => {
+  setNavigationSoundActive(active);
+  return () => setNavigationSoundActive(false);
+ },[active]);
 
 	// coming back to the launcher from another app: rest again
 	useEffect(() => {

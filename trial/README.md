@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.7), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.8), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -39,6 +39,12 @@ order, recent history, weather location, credentials and device connection helpe
 are not bundled. Public builds use generic defaults. Optional local artwork can
 replace files in the generated `app/public/iconpack/` and `app/public/wallpapers/`;
 catalogue overrides can go in the generated app's ignored `src/config/catalog.local.ts`.
+For a local sound override, replace `public/sounds/navigation-focus-v1.pcm` in the
+generated app before building. Use raw signed 16-bit little-endian mono PCM at
+48 kHz, at most one second long, and normalize it to a suitable quiet level.
+Third-party focus sounds and the owner's selected audio are not bundled here.
+Use a new PCM basename and update `SOUND` in `src/lib/navigationSound.ts` when
+changing an installed cue, so device-side sample caches cannot retain the old cue.
 `trialSeed.json` is empty in this overlay, so fresh installs discover and seed their
 own installed apps. Existing trial preferences continue to load from localStorage.
 
@@ -47,18 +53,18 @@ own installed apps. Existing trial preferences continue to load from localStorag
 - Five apps on the first row; Down expands a five-column grid and Back collapses it.
   Hold OK retains app moving, folders and context menus. Recent apps are optional:
   Off, Not on Home, or All recent, without deleting the history.
-- Optional Navigation sounds (Off / Soft) add an original, quiet 26 ms brushed
-  click only when the remote moves between app tiles on Home. New installs and
-  existing preferences default to Off. Pointer hover, blocked movement and focus
-  restoration stay silent. Each accepted tile movement dispatches immediately,
-  without a second sound rate limit or response queue. Compatible webOS TVs use
-  native PCM playback through `com.webos.service.audio/playSound` with the
-  commercial TV's `defaultapp` sink, checked once with a bundled silent sample.
-  Other environments fall back to one cached Web Audio buffer; its context stays
-  warm while Home is active and suspends on exit, background or Off. An unfinished
-  fallback click is replaced by the next move. Native one-shot clicks are 26 ms;
-  leaving Home prevents new requests. No system volume or mute setting is changed.
-  The bundled PCM is original synthesized audio; rebuild it with
+- Optional Navigation sounds (Off / Soft) use a quiet, original rounded cue for
+  remote movement between Home app tiles. New installs and existing preferences
+  default to Off. Pointer hover, blocked movement and focus restoration stay quiet.
+  Each accepted move dispatches immediately, without an extra rate limit or a
+  response queue. Compatible TVs use native PCM after a silent capability check;
+  other environments use Web Audio. Both load the same packaged mono 48 kHz S16LE
+  file, so local sound overrides remain consistent between playback paths.
+  While Soft is enabled and Lumen is visible, a continuous -80 dBFS peak signal
+  prevents silence-dependent loss of isolated cues on the tested LG. Quick panels
+  keep that signal ready; Off, background and photo-frame mode stop it. No volume,
+  mute, sound processing or output setting is written. The public generic cue has
+  a 110 ms body in a 180 ms file; regenerate it with
   `python3 trial/generate-navigation-sound.py`.
 - Native icons are read in bounded chunks, with independent failure handling and
   cache invalidation by path, file size and modification time. A failed large icon
@@ -83,7 +89,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.7_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.8_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -115,9 +121,10 @@ active versus last-used inputs and light appearance. Artifacts go to the ignored
 instead of Playwright's downloaded browser.
 
 The navigation-sound checks separately cover migration/default Off, Soft persistence,
-actual focus changes, silent pointer/boundary behavior, every rapid accepted move,
-Settings cancellation, delayed audio unlock, a stalled startup audio clock and
-unavailable audio. They instrument an audio fixture; perceived loudness and physical
+actual focus changes, every rapid accepted move, quiet pointer/boundary behavior,
+one low-level keepalive, panel readiness, Off/background/photo-frame cleanup, rapid
+Off/Soft changes during resume, packaged PCM loading, delayed audio unlock, a stalled
+startup audio clock and unavailable audio. They instrument an audio fixture; perceived loudness and physical
 output require a TV listening check.
 
 The 0.3.5 UI implementation was installed on an LG 86UN8570AUD, webOS 5.6.2-21,
@@ -129,17 +136,25 @@ input. Public fixture tests are separate from that physical evidence; the public
 build uses generic cards and gradients instead of the owner's local artwork.
 
 The owner evaluated 0.3.6 and accepted the volume but reported an unpleasant sound,
-missed rapid clicks and perceptible delay. Version 0.3.7 replaces the tonal tick,
-removes the 120 ms sound cutoff and per-tap suspend/resume cycle, and uses native PCM
-on compatible TVs to avoid webOS 5's Web Audio playback path. On the same LG, 12
-rapid CDP remote-key presses each dispatched one native click.
-Dispatch took 0.7-1.7 ms from key handling; the service acknowledged requests in
-9.7-42.2 ms. No Web Audio context was created. Blocked arrows, panels and Off stayed
-silent, Soft stayed ready after a pause, and preferences and TV volume were
-unchanged. The owner's subsequent listening check rejected the sound character and
-reported that isolated movements can be silent. Version 0.3.7 is therefore not
-accepted for audio; the isolated-press path remains under investigation. Service
-response timing alone is not a speaker measurement.
+missed rapid clicks and delay. Version 0.3.7 removed the sound throttle and used
+native PCM, but isolated cues were still inaudible. A digital output recording
+contained the complete cues even when service success alone had been insufficient
+to establish audibility. Keeping the output active with digital zero did not fix
+the listening result. A very low-level nonzero signal did: the owner confirmed
+that slow, isolated presses now made sound. This supports an idle/silence gate in
+the playback path; the exact internal stage has not been identified.
+
+Version 0.3.8 packages that keepalive and separates readiness from Home focus cues,
+keeping quick panels ready while stopping the stream for Off, background and the
+photo frame. It also loads the same versioned PCM asset in both playback paths.
+The owner's local build uses their selected reference sound; this public build
+uses the original generated cue above. Listening acceptance of the local reference
+does not establish a match between the public cue and any proprietary system sound.
+Native 0.3.8 checks then verified the installed bundle and selected-cue hashes,
+12 rapid dispatches, an isolated dispatch after a pause, one -80 dBFS keepalive,
+panel readiness and Off cleanup. Saved preferences, volume, processing and output
+settings were preserved. The owner confirmed the live selected cue and keepalive
+before packaging; a separate post-install listening check is not claimed.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental
