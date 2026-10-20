@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.9), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.10), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -92,7 +92,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.9_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.10_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -119,7 +119,10 @@ The runner starts and stops its own local preview on port 5187. It uses syntheti
 app preferences, mocked photo responses and sanitized webOS 5 control fixtures.
 It checks icon chunking/cache behavior, grid editing and folders, photo-frame wake
 handling, text geometry, settings errors, stale reads, outside setting changes,
-active versus last-used inputs and light appearance. Artifacts go to the ignored
+active versus last-used inputs and light appearance. Rendered-pixel checks exercise
+volume fill visibility at 25/50/75, plus empty/full geometry, focused and unfocused
+in both appearances. Remote volume changes retain focus while updating the fill.
+Artifacts go to the ignored
 `.trial-evidence/` directory. Set `CHROMIUM_PATH` to use an existing Chromium binary
 instead of Playwright's downloaded browser.
 
@@ -169,7 +172,19 @@ suites passed, along with public/private production builds and IPK packaging.
 Native checks on the same LG verified each panel path, all five lists, rapid remote
 movement, one cue per focus change and one shared readiness stream. Installed bundle
 and selected-cue hashes matched, and saved preferences, volume and audio settings
-were preserved. Panel listening acceptance is tracked separately from these API checks.
+were preserved. The owner subsequently confirmed that Inputs and Control Center
+sounds work well and feel immediate with the local selected cue.
+
+Version 0.3.10 fixes a focused volume slider that looked full at every value.
+The shared white focus background hid its translucent white fill even though the
+fill width and number were correct. The slider now retains a contrasting track
+and fill with its own focus outline in dark and light appearances. A rendered-pixel
+regression test failed on the old styling and passes with this correction at
+25/50/75, alongside empty/full geometry and remote volume edits without losing
+focus. Panel, visual and navigation-audio suites, both production builds and both
+IPK packages passed. Native LG checks verified live focused changes, both
+appearances, installed bundle/cue hashes, restored volume and unchanged preferences
+and sound settings. Menu opening/closing remains quiet.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

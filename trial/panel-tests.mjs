@@ -6,6 +6,28 @@ const page=await browser.newPage({viewport:{width:1920,height:1080}});const erro
 const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/webos5-controls.json',import.meta.url)));
 const seed=JSON.parse(fs.readFileSync('trial/fixtures/preview-config.json'));
 const capture=async name=>page.screenshot({path:'.trial-evidence/panels-'+name+'.png'});
+// Check rendered pixels as well as geometry: a correctly sized white fill on a
+// focused white track used to look full at every volume.
+const volumeAppearance=async(value,focused,theme)=>{
+ const slider=page.locator('.cc__slider'),fill=slider.locator('.cc__fill');
+ const ratio=await slider.evaluate(e=>e.querySelector('.cc__fill').getBoundingClientRect().width/e.getBoundingClientRect().width);
+ assert(Math.abs(ratio-value/100)<.005,'volume fill must match its number');
+ assert.equal(await slider.getAttribute('aria-valuenow'),String(value));
+ assert.equal(await slider.evaluate(e=>e.classList.contains('surface-button--focused')),focused);
+ if(value===0||value===100)return;
+ const png=await slider.screenshot();
+ const pixels=await page.evaluate(url=>new Promise(resolve=>{
+  const image=new Image();image.onload=()=>{
+   const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+   const context=canvas.getContext('2d');context.drawImage(image,0,0);
+   const sample=x=>Array.from(context.getImageData(Math.floor(image.width*x),Math.floor(image.height*.16),1,1).data).slice(0,3);
+   resolve([sample(.12),sample(.88)]);
+  };image.src=url;
+ }),'data:image/png;base64,'+png.toString('base64'));
+ const difference=Math.max(...pixels[0].map((n,i)=>Math.abs(n-pixels[1][i])));
+ assert(difference>=15,`${theme} volume ${value}, focused=${focused}: fill and track must remain visibly different (${difference})`);
+ if(value===50&&focused)await capture('volume-'+theme);
+};
 const fit=async()=>{const bad=await page.locator('.input-card__name,.input-card__detail,.input-card__status,.cc__name,.cc__sub,.choice__label,.choice__detail').evaluateAll(es=>es.filter(e=>{if(!e.getClientRects().length)return false;const p=e.closest('button');const a=e.getBoundingClientRect(),b=p.getBoundingClientRect();return a.left<b.left-1||a.right>b.right+1||a.top<b.top-1||a.bottom>b.bottom+1||e.scrollWidth>e.clientWidth+1;}).map(e=>e.textContent));assert.deepEqual(bad,[],'all text must fit its control');};
 try{
  await page.route('https://www.bing.com/**',r=>r.abort());
@@ -58,6 +80,22 @@ try{
  await page.keyboard.press('Escape');checks.push('Confirmed input switch persists last selection and reopens focused there');
  await page.evaluate(()=>{tvFixture.audioDelay=950;});await page.locator('.topbar .pill').nth(1).click();
  assert.equal(await page.locator('.cc__num').innerText(),'Loading…');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='22');
+ await page.evaluate(()=>{tvFixture.audioDelay=0;});
+ for(const theme of ['dark','light']){
+  await page.evaluate(theme=>{document.documentElement.classList.remove('dark','light');document.documentElement.classList.add(theme);},theme);
+  for(const value of [0,25,50,75,100]){
+   await page.evaluate(value=>{tvFixture.volume=value;document.dispatchEvent(new Event('visibilitychange'));},value);
+   await page.waitForFunction(value=>document.querySelector('.cc__num').textContent===String(value),value);
+   await page.locator('.cc__slider').hover();await page.waitForTimeout(220);await volumeAppearance(value,true,theme);
+   if(value===50){
+    await page.keyboard.press('ArrowLeft');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='48');await volumeAppearance(48,true,theme);
+    await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='50');await volumeAppearance(50,true,theme);
+   }
+   await page.locator('.cc__audio').hover();await page.waitForTimeout(220);await volumeAppearance(value,false,theme);
+  }
+ }
+ await page.evaluate(()=>{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');tvFixture.volume=22;document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='22');
+ checks.push('Volume fill matches 0/25/50/75/100 and remains visibly distinct while focused/unfocused in both appearances; remote volume edits update without moving focus');
  await fit();await capture('controls');assert.equal(await page.locator('[data-control=picture]').innerText(),'Picture\nStandard');
  await page.locator('[data-control=picture]').click();await page.waitForSelector('.choice-list');assert.deepEqual(await page.locator('.choice__label').allTextContents(),['Standard','Cinema']);
  assert.equal(await page.locator('[aria-selected=true] .choice__label').innerText(),'Standard');assert.equal(await page.evaluate(()=>tvFixture.writes.filter(x=>x.field==='picture').length),0);checks.push('Opening choices makes no change and filters unavailable or unsafe modes');
