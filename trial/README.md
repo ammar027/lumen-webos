@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.11), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.12), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -92,7 +92,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.11_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.12_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -195,6 +195,16 @@ the focused foreground in both appearances. The new focus comparison failed agai
 all progress-contrast checks. Native LG checks compared Volume with selected Audio,
 verified focused volume edits, label/icon colors, both appearances, installed hashes
 and preserved preferences/audio settings, restoring the current volume afterward.
+
+Version 0.3.12 refines only the volume fill colors, using opaque cool grays for
+consistent contrast over different wallpapers. The current pill geometry, shared
+solid focus highlight, stable label/icon colors and volume behavior are retained.
+Panel and visual suites pass across both appearances, focused/unfocused states,
+0/25/50/75/100 and remote volume changes.
+Native LG checks confirmed identical pill/panel geometry, live focused volume
+changes, the shared focus highlight, readable label/icon colors, and stronger fill
+contrast in both appearances. Installed bundle/cue hashes matched; preferences
+and audio settings were preserved and the starting volume was restored.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

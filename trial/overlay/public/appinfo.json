@@ -1,6 +1,6 @@
 {
   "id": "local.lumen.trial",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "vendor": "Local trial",
   "type": "web",
   "main": "index.html",
