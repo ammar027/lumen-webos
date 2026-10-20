@@ -86,6 +86,7 @@ export function ControlCenter ({onClose,onError,onAction,idleMinutes,onIdleMinut
     onMouseEnter={()=>setPos(at('volume'))} onClick={(e:MouseEvent)=>{const box=(e.currentTarget as HTMLElement).getBoundingClientRect();adjustVolume(Math.round((e.clientX-box.left)/box.width*100));}}>
     <div class="cc__fill" style={`width:${values.volume===null?0:values.volume}%`}/>
     <div class="cc__slidertext"><Glyph name="speaker"/><span>{tr('Volume')}</span><span class="cc__num">{volumeLabel}</span></div>
+    <div class="cc__slidertext cc__slidertext--filled" aria-hidden="true" style={`clip-path:inset(0 ${100-(values.volume===null?0:values.volume)}% 0 0)`}><Glyph name="speaker"/><span>{tr('Volume')}</span><span class="cc__num-copy">{volumeLabel}</span></div>
    </div>
    <button type="button" tabIndex={-1} class={`surface-button cc__audio${focused('audio')?' surface-button--focused':''}`} aria-label={tr('Audio options')} onMouseEnter={()=>setPos(at('audio'))} onClick={()=>press('audio')}><Glyph name="speaker"/><span>{tr('Audio')}</span></button>
   </div>

@@ -3,7 +3,7 @@
 This trial adds a five-column expanding app grid, more reliable native icon loading,
 an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
-`local.lumen.trial` (version 0.3.12), preserving the original Lumen installation.
+`local.lumen.trial` (version 0.3.13), preserving the original Lumen installation.
 
 These browser previews use synthetic preferences and generated text cards, not TV data:
 
@@ -92,7 +92,7 @@ own installed apps. Existing trial preferences continue to load from localStorag
 ## Install and recovery
 
 Install the package from `app/build/` with Dev Manager Desktop or a configured
-`ares-install --device DEVICE app/build/local.lumen.trial_0.3.12_all.ipk`.
+`ares-install --device DEVICE app/build/local.lumen.trial_0.3.13_all.ipk`.
 Rooted-TV features use the existing Homebrew Channel service; the trial does not
 install a new system service or change the Home button, startup app, LG screensaver
 timer, clock or hosts file. LG Home remains available from Control Center and the
@@ -121,8 +121,9 @@ It checks icon chunking/cache behavior, grid editing and folders, photo-frame wa
 handling, text geometry, settings errors, stale reads, outside setting changes,
 active versus last-used inputs and light appearance. Rendered-pixel checks exercise
 volume fill visibility at 25/50/75, plus empty/full geometry, focused and unfocused
-in both appearances. Remote volume changes retain focus while updating the fill. The focused slider
-shares the other controls' background/text colors, including its label and icon.
+in both appearances. Remote volume changes retain focus while updating the fill.
+The bright volume fill stays on the left over a subdued translucent empty track.
+A separate rim shows focus; clipped label/icon colors remain readable on both sides.
 Artifacts go to the ignored
 `.trial-evidence/` directory. Set `CHROMIUM_PATH` to use an existing Chromium binary
 instead of Playwright's downloaded browser.
@@ -205,6 +206,20 @@ Native LG checks confirmed identical pill/panel geometry, live focused volume
 changes, the shared focus highlight, readable label/icon colors, and stronger fill
 contrast in both appearances. Installed bundle/cue hashes matched; preferences
 and audio settings were preserved and the starting volume was restored.
+
+Version 0.3.13 corrects the visual direction of the volume fill: the bright left
+portion grows with volume, while the right portion stays subdued and translucent.
+A separate rim and shadow show focus without making the empty track appear full.
+A clipped, accessibility-hidden text copy keeps labels/icons dark over the bright
+fill and light over the empty portion. Pill geometry, layout and behavior stay
+unchanged. The new rendered direction check failed against 0.3.12, then passed
+at 0/25/50/75/100 in both appearances, with contrast checks and focused remote edits.
+Panel, visual and navigation-sound suites and public/private builds/packages pass.
+Installed LG checks confirmed the bright-left direction, separate focus rim, clipped
+text colors and readable contrast in focused/unfocused dark and light states. Native
+remote edits preserved focus and the pill/panel geometry matched 0.3.12 exactly.
+Installed bundle/cue hashes matched; preferences and sound settings were preserved
+and the starting volume was restored.
 
 A full ten-minute idle check was explicitly skipped. Standby/resume, a multi-hour
 slideshow and other TV models/firmwares remain unverified. This is an experimental

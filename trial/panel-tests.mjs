@@ -6,6 +6,8 @@ const page=await browser.newPage({viewport:{width:1920,height:1080}});const erro
 const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/webos5-controls.json',import.meta.url)));
 const seed=JSON.parse(fs.readFileSync('trial/fixtures/preview-config.json'));
 const capture=async name=>page.screenshot({path:'.trial-evidence/panels-'+name+'.png'});
+const luminance=rgb=>rgb.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+const contrast=(color,rgb)=>{const a=luminance(color.match(/\d+/g).slice(0,3).map(Number)),b=luminance(rgb);return(Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
 // Check rendered pixels as well as geometry: a correctly sized white fill on a
 // focused white track used to look full at every volume.
 const volumeAppearance=async(value,focused,theme)=>{
@@ -18,7 +20,13 @@ const volumeAppearance=async(value,focused,theme)=>{
  const contents=await slider.evaluate(e=>({text:getComputedStyle(e.querySelector('.cc__slidertext')).color,icon:getComputedStyle(e.querySelector('svg')).stroke}));
  assert.equal(contents.text,focusStyle.color,'Volume label must follow the control text contrast');
  assert.equal(contents.icon,focusStyle.color,'Volume icon must follow the control text contrast');
- if(value===0||value===100)return focusStyle;
+ const filledText=await slider.locator('.cc__slidertext--filled').evaluate(e=>({color:getComputedStyle(e).color,icon:getComputedStyle(e.querySelector('svg')).stroke,clip:getComputedStyle(e).clipPath,hidden:e.getAttribute('aria-hidden')}));
+ assert.equal(filledText.icon,filledText.color);assert.equal(filledText.hidden,'true');
+ assert(filledText.clip.includes((100-value)+'%'),'Text contrast boundary must follow the volume fill');
+ if(focused){
+  const rim=await slider.evaluate(e=>getComputedStyle(e,'::after').boxShadow);
+  assert.notEqual(rim,'none','The whole pill must retain a visible focus rim');
+ }
  const png=await slider.screenshot();
  const pixels=await page.evaluate(url=>new Promise(resolve=>{
   const image=new Image();image.onload=()=>{
@@ -28,8 +36,13 @@ const volumeAppearance=async(value,focused,theme)=>{
    resolve([sample(.12),sample(.88)]);
   };image.src=url;
  }),'data:image/png;base64,'+png.toString('base64'));
- const difference=Math.max(...pixels[0].map((n,i)=>Math.abs(n-pixels[1][i])));
- assert(difference>=15,`${theme} volume ${value}, focused=${focused}: fill and track must remain visibly different (${difference})`);
+ if(value>0&&value<100){
+  const brightness=rgb=>rgb.reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+  assert(brightness(pixels[0])>brightness(pixels[1])+40,'The left filled portion must be brighter than the empty right portion');
+ }
+ for(const [index,x] of [.12,.88].entries()){
+  assert(contrast(x<value/100?filledText.color:focusStyle.color,pixels[index])>=4.5,'Text must remain readable over both sides of the pill');
+ }
  if(value===50&&focused)await capture('volume-'+theme);
  return focusStyle;
 };
@@ -97,12 +110,10 @@ try{
     await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='50');await volumeAppearance(50,true,theme);
    }
    await page.locator('.cc__audio').hover();await page.waitForTimeout(220);await volumeAppearance(value,false,theme);
-   const otherFocusStyle=await page.locator('.cc__audio').evaluate(e=>({background:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color}));
-   assert.deepEqual(focusStyle,otherFocusStyle,'Volume must retain the same strong focus highlight and text contrast as other controls');
   }
  }
  await page.evaluate(()=>{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark');tvFixture.volume=22;document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>document.querySelector('.cc__num').textContent==='22');
- checks.push('Volume retains the shared strong focus highlight, fill matches 0/25/50/75/100 and remains distinct in both appearances; remote volume edits update without moving focus');
+ checks.push('Volume fills brightly from the left over a subdued empty track, with a separate focus rim and readable clipped text at 0/25/50/75/100 in both appearances; remote edits retain focus');
  await fit();await capture('controls');assert.equal(await page.locator('[data-control=picture]').innerText(),'Picture\nStandard');
  await page.locator('[data-control=picture]').click();await page.waitForSelector('.choice-list');assert.deepEqual(await page.locator('.choice__label').allTextContents(),['Standard','Cinema']);
  assert.equal(await page.locator('[aria-selected=true] .choice__label').innerText(),'Standard');assert.equal(await page.evaluate(()=>tvFixture.writes.filter(x=>x.field==='picture').length),0);checks.push('Opening choices makes no change and filters unavailable or unsafe modes');

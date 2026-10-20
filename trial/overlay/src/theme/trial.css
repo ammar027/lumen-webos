@@ -133,11 +133,15 @@ html.light .panel--cc { background-image:linear-gradient(140deg,rgba(240,244,248
 .input-card__detail { display:block;width:100%;margin-top:6px;font-size:18px;line-height:23px;opacity:.7;overflow-wrap:break-word; }
 .cc__volume-row { display:flex;margin:0 0 18px; }
 .panel--surface .cc__slider { flex:1 1 auto;min-width:0;height:72px;margin:0 14px 0 0;border-radius:26px; }
-.panel--surface .cc__fill { background:#667181; }
-/* Opaque neutral fills keep the level clear over any wallpaper without changing
-   the shared focus highlight or label contrast as the fill passes beneath it. */
-.panel--surface .cc__slider.surface-button--focused .cc__fill { background:#b8c0cc; }
+.panel--surface .cc__fill { background:#edf0f5; }
+/* The bright portion always means volume. Focus uses a separate rim, while a
+   clipped dark text copy follows the white fill without moving any content. */
+.panel--surface .cc__slider.surface-button--focused { background:rgba(255,255,255,.09);color:#f7f8fa;box-shadow:0 8px 22px rgba(0,0,0,.24); }
+.panel--surface .cc__slider.surface-button--focused .cc__fill { background:#fff; }
+.panel--surface .cc__slider.surface-button--focused::after { content:'';position:absolute;left:0;right:0;top:0;bottom:0;border-radius:inherit;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8);pointer-events:none; }
 .panel--surface .cc__slidertext { padding:0 20px;font-size:23px;color:inherit; }
+.panel--surface .cc__slidertext--filled { color:#12161d;pointer-events:none; }
+.panel--surface .cc__num-copy { margin-left:auto;font-weight:500; }
 .panel--surface .cc__slidertext svg { stroke:currentColor;width:27px;height:27px;margin-right:12px; }
 .cc__audio { flex:0 0 80px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;border-radius:24px; }
 .cc__audio span { font-size:16px;line-height:20px;margin-top:3px; }
@@ -164,9 +168,12 @@ html.light .panel.panel--surface { color:#17202b;background-color:#d8dfe6;backgr
 html.light .panel--surface .surface-button { background:rgba(255,255,255,.34); }
 html.light .panel--surface .surface-button--focused { background:#17202b!important;color:white!important; }
 html.light .panel--surface .surface-button svg { stroke:currentColor; }
-html.light .panel--surface .cc__fill { background:#b3becc; }
-html.light .panel--surface .cc__slider.surface-button--focused .cc__fill { background:#606d80; }
+html.light .panel--surface .cc__slider { background:rgba(20,32,44,.64);color:#fff; }
+html.light .panel--surface .cc__fill { background:#edf0f5; }
+html.light .panel--surface .cc__slider.surface-button--focused { background:rgba(20,32,44,.64)!important;color:#fff!important; }
+html.light .panel--surface .cc__slider.surface-button--focused::after { box-shadow:inset 0 0 0 2px rgba(23,32,43,.85); }
 html.light .panel--surface .cc__slidertext { color:inherit; }
+html.light .panel--surface .cc__slidertext--filled { color:#12161d; }
 html.light .panel--surface .cc__slidertext svg { color:inherit;stroke:currentColor; }
 html.light .panel--surface .cc__utilities { border-color:rgba(20,32,44,.13); }
 @media (prefers-reduced-motion:reduce) { .panel--surface .surface-button { transition:none; } }
