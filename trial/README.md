@@ -5,11 +5,20 @@ an in-app photo frame, and shared Inputs / Control Center panels. It is based on
 Lumen `497e9182fd9d0d12d7ed9bfbafc0ee15d7139a79` and installs separately as
 `local.lumen.trial` (version 0.3.13), preserving the original Lumen installation.
 
-These browser previews use synthetic preferences and generated text cards, not TV data:
+These browser previews use a fixed demo clock, synthetic app order and TV controls,
+generated text cards and original abstract artwork. Weather is hidden. They contain
+no device captures, personal preferences, history, accounts or location. The photo
+frame uses a generated landscape in place of an online photograph.
 
-![Expanded app grid](../docs/trial/grid.png)
-![Control Center](../docs/trial/control-center.png)
-![Input selection](../docs/trial/inputs.png)
+| Home | Expanded app grid |
+| --- | --- |
+| ![Home with generated app cards](../docs/trial/home.png) | ![Five-column app grid](../docs/trial/grid.png) |
+| **Inputs** | **Control Center — dark** |
+| ![Input selection with synthetic connection states](../docs/trial/inputs.png) | ![Focused volume pill at a demo value of 50](../docs/trial/control-center.png) |
+| **Photo frame** | **Control Center — light** |
+| ![Photo frame with generated landscape and fixed clock](../docs/trial/photo-frame.png) | ![The same volume pill in light appearance](../docs/trial/control-center-light.png) |
+
+See [screenshot provenance and reproduction](../docs/trial/README.md).
 
 ## Build from a fresh checkout
 
