@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fifty-ninth patch layer: the Control Center laid out like tvOS 26's (Sam Renfrew's fork, MIT: components/ControlCenter.tsx): a grid four squares wide of glass tiles and circles,
-where Sound, Picture, Theme (Appearance), Clock and Sleep timer open a list of choices (the tile grows into a pill), a backlight bar, Eye Comfort, Screen off, Restart, Art mode (Lumen Gallery) and LG Home.
+where Sound, Picture, Theme (Appearance) and Sleep timer open a list of choices (the tile grows into a pill), a backlight bar, Eye Comfort, Screen off, Restart, Art mode (Lumen Gallery) and LG Home.
 Ours stays: the pre-blurred glass (no live blur), the Sleep timer, Appearance and Clock, Lumen Gallery. The TV's own screensaver time and 'Start now' moved to Settings > Screensaver."""
 import os, re, shutil
 ROOT = os.path.expanduser('~/Developer/webos-launcher-tvos')
@@ -62,15 +62,15 @@ sub("export type CenterAction = 'lg-home' | 'art';", "export type CenterAction =
 sub("setPictureMode, type Controls} from '../lib/tvcontrols';", "setPictureMode, SLEEP_MINUTES, setSleepTimer, type Controls} from '../lib/tvcontrols';")
 sub("type CellId = 'sound' | 'picture' | 'art'", "type CellId = 'sleep' | 'sound' | 'picture' | 'art'")
 sub("type MenuCell = 'sound' | 'picture' | 'dark' | 'clock';\nconst MENU_CELLS: CellId[] = ['sound', 'picture', 'dark', 'clock'];", "type MenuCell = 'sound' | 'picture' | 'dark' | 'clock' | 'sleep';\nconst MENU_CELLS: CellId[] = ['sound', 'picture', 'dark', 'clock', 'sleep'];")
-sub("dark: 'screensaver', clock: 'timer'};", "dark: 'screensaver', clock: 'timer', sleep: 'power'};")
-sub("\t[{id: 'art', span: 1}, {id: 'home', span: 1}, {id: 'screenoff', span: 1}, {id: 'restart', span: 1}],\n", "\t[{id: 'sleep', span: 2}, {id: 'art', span: 1}, {id: 'home', span: 1}],\n\t[{id: 'screenoff', span: 1}, {id: 'restart', span: 1}],\n")
+sub("dark: 'screensaver', clock: 'timer'};", "dark: 'screensaver', clock: 'timer', sleep: 'power'};   // Clock is no longer in the grid: its 12/24-hour choice is in Settings > Language and Clock")
+sub("\t[{id: 'dark', span: 2}, {id: 'clock', span: 2}],\n", "\t[{id: 'dark', span: 2}, {id: 'sleep', span: 2}],\n")
 sub("backlight: 100, eyeComfort: false};\n/** Read the TV's values", "backlight: 100, eyeComfort: false, sleepMinutes: 0, screensaver: 10};\n/** Read the TV's values")
 sub("				: cell === 'dark' ? [{value: 'off', label: tr('Light')}", "				: cell === 'sleep' ? SLEEP_MINUTES.map((m) => ({value: String(m), label: m ? tr(`${m} minutes`) : tr('Off')}))\n				: cell === 'dark' ? [{value: 'off', label: tr('Light')}")
 sub("return cell === 'sound' ? v.sound : cell === 'picture' ? v.picture : cell === 'dark' ? o.darkMode : o.clockFormat;", "return cell === 'sound' ? v.sound : cell === 'picture' ? v.picture : cell === 'sleep' ? String(v.sleepMinutes) : cell === 'dark' ? o.darkMode : o.clockFormat;")
 sub("\t\telse if (cell === 'dark') outer.current.onDarkMode(value);", "\t\telse if (cell === 'sleep') {\n\t\t\tconst before = v.sleepMinutes;\n\t\t\tpatch({sleepMinutes: Number(value)}); setSleepTimer(Number(value)).catch(() => { patch({sleepMinutes: before}); onError(\"Couldn't set the sleep timer\"); });\n\t\t}\n\t\telse if (cell === 'dark') outer.current.onDarkMode(value);")
 sub("\t\t\t\t: cell === 'dark' ? {glyph: 'screensaver', title: tr('Theme')", "\t\t\t\t: cell === 'sleep' ? {glyph: 'power', title: tr('Sleep timer'), sub: values.sleepMinutes ? `${values.sleepMinutes} ${tr('min')}` : tr('Off'), on: values.sleepMinutes > 0}\n\t\t\t\t: cell === 'dark' ? {glyph: 'screensaver', title: tr('Theme')")
 sub("{cell: 'art', glyph: 'image', label: 'Screensaver'}", "{cell: 'art', glyph: 'image', label: 'Art mode'}")
-sub("\t\t\t\t<div class=\"cc__row\">{circle('art')}{circle('home')}{circle('screenoff')}{circle('restart')}</div>\n", "\t\t\t\t<div class=\"cc__row\">{wide('sleep')}{circle('art')}{circle('home')}</div>\n\t\t\t\t<div class=\"cc__row\">{circle('screenoff')}{circle('restart')}</div>\n")
+sub("\t\t\t\t\t{wide('clock')}\n", "\t\t\t\t\t{wide('sleep')}\n")
 open(P('components/ControlCenter.tsx'), 'w').write(s)
 
 # ---- CSS: drop our Control Center rules (selectors that are only ours), add theirs ----
