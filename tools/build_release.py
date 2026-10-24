@@ -51,3 +51,10 @@ os.makedirs(f'{ROOT}/release', exist_ok=True)
 for f in glob.glob(f'{ROOT}/release/*.ipk'): os.remove(f)
 for f in glob.glob(f'{A}/build/*.ipk'): shutil.copy(f, f'{ROOT}/release/')
 print(glob.glob(f'{ROOT}/release/*.ipk'))
+# the checksum file always describes exactly the packages in release/ (an old hand-made one once listed the wrong file)
+import hashlib
+lines = []
+for f in sorted(glob.glob(f'{ROOT}/release/*.ipk')):
+    lines.append(f"{hashlib.sha256(open(f, 'rb').read()).hexdigest()}  {os.path.basename(f)}")
+open(f'{ROOT}/release/SHA256SUMS.txt', 'w').write('\n'.join(lines) + '\n')
+print(open(f'{ROOT}/release/SHA256SUMS.txt').read())
