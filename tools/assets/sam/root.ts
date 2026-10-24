@@ -9,7 +9,7 @@ export const HOMEHOOK = '/var/lib/homehook';
 
 const BASE64 = /^[A-Za-z0-9+\/]*={0,2}$/;
 /** Files under HOMEHOOK that Lumen may read. */
-const FILES = ['immich.json'] as const;
+const FILES = ['immich.json', 'lumen-config.json'] as const;
 export type HomehookFile = typeof FILES[number];
 
 function shellQuote (value: string): string { return `'${value.replace(/'/g, `'\\''`)}'`; }
@@ -49,6 +49,13 @@ export function immichStackIds (base: string, key: string): Promise<string> {
 	if (!IMMICH_BASE.test(base) || !IMMICH_KEY.test(key)) return Promise.reject(new Error('refused: immich request'));
 	const curl = `curl -sf -m 15 -H ${shellQuote('x-api-key: ' + key)} -H 'accept: application/json'`;
 	return run(`${curl} ${shellQuote(base + '/api/stacks')} | grep -oE '"(primaryAssetId|id)":"[0-9a-f-]{36}"' | sed -e 's/^"primaryAssetId":"//' -e 's/^"id":"/=/' -e 's/"$//'`, 20000);
+}
+
+/** Writes text to one of FILES. The text travels as base64, so nothing in it is ever read by the shell. */
+export function writeFile (name: HomehookFile, text: string): Promise<void> {
+	if (FILES.indexOf(name) === -1) return Promise.reject(new Error('unknown file ' + name));
+	const b64 = toBase64(text);
+	return run(`mkdir -p ${HOMEHOOK} && echo ${b64} | base64 -d > ${HOMEHOOK}/${name}.tmp && mv ${HOMEHOOK}/${name}.tmp ${HOMEHOOK}/${name}`).then(() => undefined);
 }
 
 /** The contents of one of FILES, or '' when it does not exist. */

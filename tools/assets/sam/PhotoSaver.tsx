@@ -3,6 +3,7 @@ import {Clock} from './Clock';
 import {langLocale} from '../lib/i18n';
 import {WALLPAPERS, cloudUrl} from '../config/wallpapers';
 import {resized} from '../lib/wallpaper';
+import {dimForScreensaver, restoreBacklight} from '../lib/tvcontrols';
 import {cachedServer, loadServer, nextAsset, picturePosition, previewUrls, type ImmichServer} from '../lib/immich';
 
 const dateText = () => { try { return new Date().toLocaleDateString(langLocale(), {weekday: 'long', month: 'long', day: 'numeric'}); } catch { return new Date().toDateString(); } };
@@ -22,10 +23,18 @@ const decoded = (url: string) => { const img = new Image(); img.src = url; retur
 
 /** A photo screensaver inside Lumen (after the fork's Ambient screen): two full-screen layers swap with a crossfade every `seconds` (opacity only), each picture zooming in very slowly
  *  (transform only); the clock, date and weather sit at the bottom. The pictures come from the wallpaper library, or from your Immich server (source 'immich:...'). Any key or a click returns. */
-export function PhotoSaver ({source, favorites, seconds, print, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; seconds: number; print: boolean; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
+export function PhotoSaver ({source, favorites, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
 	const [layers, setLayers] = useState<[Layer, Layer]>([NO_LAYER, NO_LAYER]);
 	const [front, setFront] = useState(0);
 	const state = useRef({front: 0, alive: true, timer: 0, recent: [] as string[], shown: ''});
+
+	// the TV's backlight goes down while the photos show (Settings > Screensaver > Brightness) and back up when they end
+	useEffect(() => {
+		if (backlight === undefined) return undefined;
+		let on = true;
+		dimForScreensaver(backlight, () => on);
+		return () => { on = false; restoreBacklight(); };
+	}, [backlight]);
 
 	useEffect(() => {
 		const s = state.current;
