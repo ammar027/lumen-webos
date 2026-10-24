@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Twelfth patch layer: app name, icon and launch screen (icons come from tools/gen_appicon.py into app/public/). Change the name with APP_NAME=... here and when generating the splash."""
-import os, re
+import json, os, re
 APP = os.path.expanduser('~/Developer/webos-launcher-tvos/app')
 NAME = os.environ.get('APP_NAME', 'Lumen')
 def P(p): return os.path.join(APP, p)
@@ -10,7 +10,12 @@ if '"bgImage"' not in s:
     s = s.replace('"largeIcon": "largeIcon.png",', '"largeIcon": "largeIcon.png",\n  "bgImage": "splash.png",\n  "splashBackground": "splash.png",')
 s = s.replace('"id": "works.partridge.webos-launcher"', '"id": "com.ammar027.lumen"').replace('"vendor": "works.partridge.webos-launcher"', '"vendor": "ammar027"')
 s = s.replace('"version": "1.0.0"', '"version": "1.0.7"')
-open(P('public/appinfo.json'), 'w').write(s)
+# Declare eligibility only. Selecting Lumen as the default Home is a user action.
+manifest = json.loads(s)
+categories = manifest.setdefault('appCategory', [])
+if 'home' not in categories:
+    categories.append('home')
+open(P('public/appinfo.json'), 'w').write(json.dumps(manifest, indent=2) + '\n')
 c = open(P('src/config/constants.ts')).read()
 open(P('src/config/constants.ts'), 'w').write(c.replace("'works.partridge.webos-launcher'", "'com.ammar027.lumen'"))
 
