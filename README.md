@@ -7,8 +7,6 @@ Its companion is [Lumen Gallery](https://github.com/ammar027/lumen-gallery-webos
 Tested on an LG 65UQ8040PSB (webOS 22, Chromium 87, 1.5 GB RAM). It needs a rooted TV with the
 [Homebrew Channel](https://www.webosbrew.org/); a few features (screen off, restart, picture mode, the Home-button takeover) use its root service.
 
-![Lumen 1.1: home screen, Control Center, Clock settings, StandBy and Settings in a grid](docs/bento/bento-main.png)
-
 ## Demo
 
 ![A short walkthrough: moving along the dock, the second row, and Control Center](docs/demo/lumen-demo.gif)
@@ -17,12 +15,14 @@ Tested on an LG 65UQ8040PSB (webOS 22, Chromium 87, 1.5 GB RAM). It needs a root
 
 ## Screenshots
 
-Made from the dev preview at 1920 x 1080 (`node tools/screenshots.mjs`); the wallpaper is a public-domain painting from the Cleveland Museum of Art.
+The home screen and Control Center are screenshots of the real app on an LG 65UQ8040PSB (webOS 22). The Settings pages and the stacked clock come from the dev preview at 1920 x 1080.
 
-![Home screen: a glass dock of apps, date and weather top left, Inputs and Control Center top right](docs/screenshots/home.jpg)
-![Moving down: the second row of apps appears over a blurred wallpaper](docs/screenshots/more-apps.jpg)
-![Control Center: sound, picture, sleep timer, screensaver, quick actions and volume](docs/screenshots/control-center.jpg)
-![Settings, Options tab: a scrolling list with a scroll indicator](docs/screenshots/settings-options.jpg)
+![Home screen: a frosted glass dock of apps, date and weather top left, Inputs and Control Center top right](docs/screenshots/home.jpg)
+![Control Center: frosted glass controls for sound, picture, theme, sleep timer, backlight and quick actions](docs/screenshots/control-center.jpg)
+![The Stacked clock: a big frosted time, the long date and the weather with an icon](docs/screenshots/home-clock.jpg)
+![Settings, Apple TV style: one page per topic](docs/screenshots/settings.jpg)
+![Appearance: theme, glass and text options](docs/screenshots/settings-appearance.jpg)
+![Settings > Clock: every choice shows a live preview](docs/screenshots/clock-layout.jpg)
 
 ## Supported TVs
 
@@ -52,10 +52,10 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 
 ## Easy install: download the .ipk
 
-Don't want to build anything? Download `com.ammar027.lumen_1.1.0_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
+Don't want to build anything? Download `com.ammar027.lumen_1.1.1_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
 
 - **With a mouse and no command line:** open [Dev Manager Desktop](https://github.com/webosbrew/dev-manager-desktop/releases), add your TV, go to *Apps* and drop the `.ipk` onto the window.
-- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.1.0_all.ipk`.
+- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.1.1_all.ipk`.
 
 The release build leaves out third-party app logos and the default wallpapers are public-domain paintings; apps without an icon get a plain tile.
 Optional: see [Native Home selection](docs/native-home.md) for supported firmware, required metadata, and restoration steps.
