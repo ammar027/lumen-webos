@@ -21,7 +21,7 @@ ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); if (m.id &
 const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({id: i, method, params})); });
 const evalJs = (expression) => send('Runtime.evaluate', {expression, awaitPromise: true});
 
-await send('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 2, mobile: false});
+await send('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false});
 const KEYS = {left: 37, up: 38, right: 39, down: 40, enter: 13};
 const press = async (name, wait = 160) => {
 	const c = KEYS[name];
@@ -37,7 +37,7 @@ const open = async (path, config) => {
 	await sleep(3500);
 };
 const shot = async (name) => {
-	const r = await send('Page.captureScreenshot', {format: 'png'});
+	const r = await send('Page.captureScreenshot', {format: 'png', clip: {x: 0, y: 0, width: 1920, height: 1080, scale: 2}});
 	writeFileSync(OUT + name + '.png', Buffer.from(r.data, 'base64'));
 	console.log('saved', name);
 };
