@@ -32,7 +32,7 @@ const decoded = (url: string) => { const img = new Image(); img.src = url; retur
 
 /** A photo screensaver inside Lumen (after the fork's Ambient screen): two full-screen layers swap with a crossfade every `seconds` (opacity only), each picture zooming in very slowly
  *  (transform only); the clock, date and weather sit at the bottom. The pictures come from the wallpaper library, or from your Immich server (source 'immich:...'). Any key or a click returns. */
-export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
+export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, embedded, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; embedded?: boolean; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
 	const [layers, setLayers] = useState<[Layer, Layer]>([NO_LAYER, NO_LAYER]);
 	const [front, setFront] = useState(0);
 	const state = useRef({front: 0, alive: true, timer: 0, recent: [] as string[], shown: ''});
@@ -85,7 +85,7 @@ export function PhotoSaver ({source, favorites, picks, seconds, print, backlight
 		};
 		advance();
 		const exit = (e: Event) => { e.preventDefault(); onExit(); };
-		window.addEventListener('keydown', exit, true);
+		if (!embedded) window.addEventListener('keydown', exit, true);
 		window.addEventListener('mousedown', exit, true);
 		return () => {
 			s.alive = false;

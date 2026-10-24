@@ -1,0 +1,57 @@
+/* ---------- StandBy (components/StandBy.tsx): a full-screen face you leave on, after Apple's StandBy ---------- */
+.sb { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 100; background: #000; overflow: hidden; color: var(--sb, #fff); animation: sb-in 500ms ease-out both; }
+@keyframes sb-in { from { opacity: 0; } to { opacity: 1; } }
+.sb__center { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.sb__time { font-size: 440px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--sb); }
+.sb__time--light { color: #fff; text-shadow: 0 8px 50px rgba(0, 0, 0, 0.35); font-weight: 600; }
+.sb__time--small { font-size: 120px; font-weight: 650; }
+.sb__colon { opacity: 0.85; margin: 0 0.02em; position: relative; top: -0.04em; }
+.sb__period { font-size: 80px; font-weight: 500; margin-left: 20px; }
+.sb__sub { margin-top: 24px; font-size: 40px; font-weight: 500; color: rgba(255, 255, 255, 0.78); letter-spacing: -0.005em; }
+.sb--solar .sb__sub, .sb--fade .sb__sub, .sb--flow .sb__sub { text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35); }
+.sb--night .sb__sub { color: rgba(255, 90, 60, 0.7); }
+/* Float: the glass digits */
+.sb__float { height: 640px; width: auto; filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.35)); }
+.sb__stroke { stroke: var(--sb); stroke-opacity: 0.75; stroke-width: 19; stroke-linecap: round; stroke-linejoin: round; }
+.sb__dot { fill: var(--sb); fill-opacity: 0.75; stroke: none; }
+/* Analog */
+.sb__analog { width: 640px; height: 640px; }
+.sb__face { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.4); stroke-width: 1.5; }
+.sb__tick { stroke: #fff; stroke-width: 2.4; stroke-linecap: round; }
+.sb__tick--minor { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1.2; }
+.sb__tick--accent { stroke: var(--sb); stroke-width: 3.4; }
+.sb__hand { stroke: #fff; stroke-linecap: round; }
+.sb__hand--h { stroke-width: 7; }
+.sb__hand--m { stroke-width: 4.6; }
+.sb__pin { fill: var(--sb); }
+/* Solar: the sky follows the hour */
+.sb--solar { background: linear-gradient(var(--sky-from), var(--sky-to)); }
+.sb__sun { position: absolute; width: 220px; height: 220px; margin: -110px 0 0 -110px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 244, 214, 0.95) 0%, rgba(255, 190, 90, 0.55) 38%, rgba(255, 150, 60, 0) 70%); }
+/* Weather */
+.sb--weather { background: linear-gradient(#10224a, #2a1d5a); }
+.sb__place { font-size: 48px; font-weight: 600; color: rgba(255, 255, 255, 0.8); }
+.sb__temp { font-size: 420px; font-weight: 700; line-height: 1; color: var(--sb); letter-spacing: -0.04em; }
+.sb__cond { font-size: 84px; font-weight: 500; color: #fff; }
+/* Fade and Flow: slow colour */
+.sb--fade { background: #1a1030; }
+.sb--flow { background: #061a2a; }
+.sb__sky { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; }
+.sb__blob { position: absolute; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; border-radius: 50%; will-change: transform, opacity; }
+.sb--fade .sb__blob--a { left: 25%; top: 30%; background: radial-gradient(circle, rgba(255, 120, 90, 0.85), rgba(255, 120, 90, 0) 65%); animation: sb-fade 24s ease-in-out infinite alternate; }
+.sb--fade .sb__blob--b { left: 75%; top: 60%; background: radial-gradient(circle, rgba(120, 90, 255, 0.85), rgba(120, 90, 255, 0) 65%); animation: sb-fade 24s ease-in-out infinite alternate-reverse; }
+.sb--fade .sb__blob--c { left: 50%; top: 100%; background: radial-gradient(circle, rgba(255, 190, 90, 0.7), rgba(255, 190, 90, 0) 65%); animation: sb-fade 30s ease-in-out infinite alternate; }
+@keyframes sb-fade { from { opacity: 0.1; transform: scale(0.85); } to { opacity: 1; transform: scale(1.1); } }
+.sb--flow .sb__blob--a { left: 20%; top: 40%; background: radial-gradient(circle, rgba(40, 200, 200, 0.8), rgba(40, 200, 200, 0) 65%); animation: sb-flow-a 36s ease-in-out infinite alternate; }
+.sb--flow .sb__blob--b { left: 80%; top: 30%; background: radial-gradient(circle, rgba(60, 120, 255, 0.8), rgba(60, 120, 255, 0) 65%); animation: sb-flow-b 42s ease-in-out infinite alternate; }
+.sb--flow .sb__blob--c { left: 50%; top: 90%; background: radial-gradient(circle, rgba(120, 255, 170, 0.6), rgba(120, 255, 170, 0) 65%); animation: sb-flow-a 48s ease-in-out infinite alternate-reverse; }
+@keyframes sb-flow-a { from { transform: translate(-300px, 120px) scale(0.9); } to { transform: translate(400px, -200px) scale(1.15); } }
+@keyframes sb-flow-b { from { transform: translate(260px, -160px) scale(1.1); } to { transform: translate(-420px, 220px) scale(0.85); } }
+.sb__corner { position: absolute; left: 100px; bottom: 80px; display: flex; flex-direction: column; color: #fff; }
+.sb__corner .sb__sub { margin-top: 8px; text-align: left; }
+/* Night Mode: dim and red, as StandBy does in a dark room */
+.sb__night { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(40, 0, 0, 0.55); pointer-events: none; }
+.sb--night.sb--photos .sb__night { background: rgba(60, 0, 0, 0.6); }
+.sb__hint { position: absolute; left: 0; right: 0; bottom: 28px; text-align: center; font-size: 22px; color: rgba(255, 255, 255, 0.0); transition: color 600ms; pointer-events: none; }
+.sb:hover .sb__hint, .sb__hint { animation: sb-hint 6s ease-out both; }
+@keyframes sb-hint { 0% { color: rgba(255, 255, 255, 0.55); } 70% { color: rgba(255, 255, 255, 0.55); } 100% { color: rgba(255, 255, 255, 0); } }
+html.reduce-motion .sb__blob { animation: none; }
