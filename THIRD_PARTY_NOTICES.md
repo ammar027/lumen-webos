@@ -14,3 +14,7 @@ This repository holds patch scripts, notes and TV-side scripts. The material bel
 
 App icons, logos and names of third-party apps are trademarks of their owners. They are not included in this repository and this project is not
 affiliated with or endorsed by them, or by LG Electronics, Apple Inc. or Samsung. "LG" and "webOS" are trademarks of LG Electronics.
+
+## Sam Renfrew's fork
+
+The canvas backdrops for the lower rows and Settings (`lib/blurCanvas.ts`), the open-app dot, the Art and Landscapes wallpaper lists and their generator (`tools/harvest_open.py`, `tools/build_catalog.py`) come from <https://github.com/samrenfrew/lumen-webos> (MIT). The frame-rate findings behind them are in that fork's `docs/down-up-lag-review.md`. Art pictures are public-domain paintings (Cleveland Museum of Art, Met); Landscapes are Wikimedia Commons pictures under their own licences, with the credit kept in the list.
