@@ -1,0 +1,45 @@
+/* ---------- Settings pages, laid out like Apple TV's (screens/Settings.tsx, components/SettingsList.tsx) ---------- */
+.settings { animation: settings-in 220ms ease-out; }
+@keyframes settings-in { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+.settings--list { left: 0; right: 0; top: 0; bottom: 0; }
+.settings__head { position: relative; height: 72px; margin: 0 0 18px; }
+.settings__title, .slist__title { margin: 0; text-align: center; font-size: 52px; line-height: 72px; font-weight: 600; letter-spacing: -0.02em; color: rgba(255, 255, 255, 0.62); }
+.slist__title { position: absolute; top: 56px; left: 0; right: 0; }
+
+.slist__side { position: absolute; left: 110px; top: 0; bottom: 0; width: 640px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+/* a flat card, as tvOS draws it: one see-through fill, no gradient, edge highlight or shadow */
+.slist__icon { position: relative; width: 480px; height: 480px; border-radius: 110px; background-color: rgba(255, 255, 255, 0.22); }
+.slist__icon .tile__glyph { left: 30%; top: 30%; width: 40%; height: 40%; stroke: rgba(15, 18, 28, 0.75); stroke-width: 1.4; }
+.slist__description { margin: 40px 0 0; width: 540px; min-height: 140px; font-size: 26px; line-height: 1.45; text-align: center; color: rgba(255, 255, 255, 0.62); }
+
+/* the rows window: 50px of room each side so the focused row's zoom and shadow are not clipped */
+.slist__view { position: absolute; left: 810px; right: 90px; top: 170px; height: 840px; overflow: hidden; }
+.slist__view--long { -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 40px), transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 40px), transparent 100%); }
+.slist__track { position: relative; margin-top: 12px; transition: transform var(--motion-scroll-ms) cubic-bezier(0.2, 0.7, 0.2, 1); will-change: transform; }
+.slist__row {
+	position: absolute; left: 50px; right: 50px; height: 70px; box-sizing: border-box; padding: 0 34px; border-radius: 35px;
+	display: flex; flex-direction: row; align-items: center;
+	font-size: 32px; font-weight: 500; letter-spacing: -0.012em; color: rgba(255, 255, 255, 0.94);
+	background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+.slist__row--focused { background-image: none; background-color: #fff; color: #111; transform: scale(1.03); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.30); }
+html.focus-subtle .slist__row--focused { transform: scale(1.015); }
+html.focus-strong .slist__row--focused { transform: scale(1.05); }
+.slist__label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slist__value { flex: 0 1 auto; max-width: 380px; margin-left: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(255, 255, 255, 0.55); }
+.slist__row--focused .slist__value { color: rgba(17, 17, 17, 0.55); }
+.slist__chevron { flex: 0 0 auto; width: 14px; height: 24px; margin-left: 20px; fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.slist__row--focused .slist__chevron { stroke: rgba(17, 17, 17, 0.45); }
+.slist__tick { flex: 0 0 auto; width: 30px; height: 30px; margin-right: 18px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+.slist__tick--on { visibility: visible; }
+
+html.light .settings__title, html.light .slist__title { color: rgba(255, 255, 255, 0.85); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45); }
+html.light .slist__icon { background-color: rgba(255, 255, 255, 0.6); }
+html.light .slist__description { color: rgba(255, 255, 255, 0.85); text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5); }
+html.light .slist__row { color: #14151b; background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.45)); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(20, 24, 40, 0.10); }
+html.light .slist__value { color: rgba(20, 22, 32, 0.55); }
+html.light .slist__chevron { stroke: rgba(20, 22, 32, 0.45); }
+html.light .slist__row--focused { background-image: none; background-color: #14151b; color: #fff; box-shadow: 0 8px 18px rgba(20, 24, 40, 0.30); }
+html.light .slist__row--focused .slist__value { color: rgba(255, 255, 255, 0.6); }
+html.light .slist__row--focused .slist__chevron { stroke: rgba(255, 255, 255, 0.6); }
