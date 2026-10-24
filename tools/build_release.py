@@ -30,6 +30,7 @@ for f in untracked: os.path.exists(f'{A}/{f}') and os.remove(f'{A}/{f}')
 open(f'{A}/src/config/iconpack.ts', 'w').write('// Release build: no third-party icon tiles.\nexport const ICON_PACK: Record<string, string> = {};\n')
 
 # 2. five public-domain paintings as the bundled wallpapers (plus the small blurred copies the glass uses)
+os.makedirs(f'{A}/public/wallpapers', exist_ok=True)   # a CI build starts without the folder
 for f in glob.glob(f'{A}/public/wallpapers/*'): os.remove(f)
 titles = []
 for i, (path, title) in enumerate(WALLPAPERS):
