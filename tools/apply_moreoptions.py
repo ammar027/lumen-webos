@@ -103,11 +103,9 @@ html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after 
 html.hide-names .rows .tile__label, html.hide-names .panel--folder .tile__label { display: none; }
 /* the glass bar bends the picture at its rim (lib/liquidGlass.ts, SVG displacement). Over a video it only tints. Off while the rows are down: the slide would redraw it each frame. */
 html.liquiddock .rows:not(.rows--lower) > .row:first-child::before {
-	-webkit-backdrop-filter: blur(0.75px) url(#lg-dock) brightness(1.1) saturate(1.5) !important;
-	backdrop-filter: blur(0.75px) url(#lg-dock) brightness(1.1) saturate(1.5) !important;
-	background: rgba(0, 0, 0, 0.3) !important;
-	box-shadow: inset 0 0 4px 0 rgba(250, 250, 250, 0.5), 0 20px 44px rgba(0, 0, 0, 0.28) !important;
+	-webkit-backdrop-filter: blur(4px) url(#lg-dock) brightness(1.1) saturate(1.5) !important;
+	backdrop-filter: blur(4px) url(#lg-dock) brightness(1.1) saturate(1.5) !important;
+	box-shadow: inset 0 0 4px 0 rgba(250, 250, 250, 0.5), inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.55), inset 3px 3px 2px -2px rgba(110, 200, 255, 0.7), inset -3px -3px 2px -2px rgba(255, 120, 190, 0.28), 0 20px 44px rgba(0, 0, 0, 0.28) !important;
 }
-html.liquiddock .rows:not(.rows--lower) > .row:first-child::after { display: none; }
 """)
 print('more options applied')
