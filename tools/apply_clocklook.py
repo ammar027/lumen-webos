@@ -16,7 +16,7 @@ edit(P('lib/storage.ts'), [
 ])
 edit(P('app.tsx'), [
  ("clockSize: 'clock-size',", "clockSize: 'clock-size', clockLook: 'clock-look',"),
- ("[OPTION.clockSize]: 'language',", "[OPTION.clockSize]: 'language', [OPTION.clockLook]: 'language',"),
+ ("[OPTION.clockSize]: 'appearance',", "[OPTION.clockSize]: 'appearance', [OPTION.clockLook]: 'appearance',"),
  ("\t\t\t{id: OPTION.clockSize,", "\t\t\t{id: OPTION.clockLook, label: 'Clock look', description: 'Solid: plain digits. Frosted: see-through white digits with a soft edge, like the iOS lock screen.', value: true, valueText: config.clockLook === 'frosted' ? 'Frosted' : 'Solid'},\n\t\t\t{id: OPTION.clockSize,"),
  ("\t\t\tif (id === OPTION.clockSize) return", "\t\t\tif (id === OPTION.clockLook) return {choices: ['Solid', 'Frosted'], choice: config.clockLook === 'frosted' ? 1 : 0};\n\t\t\tif (id === OPTION.clockSize) return"),
  ("\t\telse if (optionId === OPTION.clockSize) updateConfig(", "\t\telse if (optionId === OPTION.clockLook) updateConfig({...config, clockLook: index === 1 ? 'frosted' : 'solid'});\n\t\telse if (optionId === OPTION.clockSize) updateConfig("),
@@ -24,7 +24,14 @@ edit(P('app.tsx'), [
  ("}, [config.clockSize,", "}, [config.clockLook, config.clockSize,"),
 ])
 open(P('theme/global.css'), 'a').write('''
-html.clock-frosted .screen > .pill.status .clock__time, html.clock-frosted .screen > .pill.status .status__date { color: rgba(255, 255, 255, 0.62); -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.78); text-shadow: 0 3px 16px rgba(0, 0, 0, 0.3); }
+html.clock-frosted .screen > .pill.status .clock__time, html.clock-frosted .screen > .pill.status .status__date {
+	color: transparent; -webkit-text-fill-color: transparent;
+	background-image: linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)), var(--wp-blur, none);
+	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-repeat: no-repeat;
+	-webkit-background-clip: text; background-clip: text;
+	-webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.62); text-shadow: none;
+	filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.28));
+}
 html.clock-frosted .screen > .pill.status .clock__period { color: rgba(255, 255, 255, 0.7); -webkit-text-stroke: 0; }
 ''')
 print('clocklook applied')
