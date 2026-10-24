@@ -2,7 +2,7 @@
 .sb { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 100; background: #000; overflow: hidden; color: var(--sb, #fff); animation: sb-in 500ms ease-out both; }
 @keyframes sb-in { from { opacity: 0; } to { opacity: 1; } }
 .sb__center { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.sb__time { font-size: 440px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--sb); }
+.sb__time { font-size: 460px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--sb); }
 .sb__time--light { color: #fff; text-shadow: 0 8px 50px rgba(0, 0, 0, 0.35); font-weight: 600; }
 .sb__time--small { font-size: 120px; font-weight: 650; }
 .sb__colon { opacity: 0.85; margin: 0 0.02em; position: relative; top: -0.04em; }
@@ -10,23 +10,47 @@
 .sb__sub { margin-top: 24px; font-size: 40px; font-weight: 500; color: rgba(255, 255, 255, 0.78); letter-spacing: -0.005em; }
 .sb--solar .sb__sub, .sb--fade .sb__sub, .sb--flow .sb__sub { text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35); }
 .sb--night .sb__sub { color: rgba(255, 90, 60, 0.7); }
-/* Float: the glass digits */
-.sb__float { height: 640px; width: auto; filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.35)); }
-.sb__stroke { stroke: var(--sb); stroke-opacity: 0.75; stroke-width: 19; stroke-linecap: round; stroke-linejoin: round; }
-.sb__dot { fill: var(--sb); fill-opacity: 0.75; stroke: none; }
-/* Analog */
-.sb__analog { width: 640px; height: 640px; }
-.sb__face { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.4); stroke-width: 1.5; }
-.sb__tick { stroke: #fff; stroke-width: 2.4; stroke-linecap: round; }
-.sb__tick--minor { stroke: rgba(255, 255, 255, 0.45); stroke-width: 1.2; }
-.sb__tick--accent { stroke: var(--sb); stroke-width: 3.4; }
+/* Float: fat bubble numerals, each figure its own shade, a little overlap, a grey see-through colon (Apple's Float style) */
+.sb__float { height: 640px; width: auto; overflow: visible; filter: drop-shadow(0 10px 36px rgba(0, 0, 0, 0.4)); }
+.sb__stroke { stroke-width: 58; stroke-linecap: round; stroke-linejoin: round; stroke-opacity: 0.96; }
+.sb__dot { fill: rgba(190, 190, 195, 0.82); stroke: none; }
+.sb--night .sb__dot { fill: var(--sb); fill-opacity: 0.75; }
+/* Analog: a black dial, numerals, ticks, thick white hands, a thin orange second hand (Apple's Analog style) */
+.sb__analog { width: 760px; height: 760px; overflow: visible; }
+.sb__analog--small { width: 620px; height: 620px; }
+.sb__num { font-size: 21px; font-weight: 500; fill: #fff; font-family: inherit; }
+.sb__tick { stroke: rgba(255, 255, 255, 0.92); stroke-width: 1.8; stroke-linecap: butt; }
+.sb__tick--minor { stroke: rgba(255, 255, 255, 0.5); stroke-width: 1; }
 .sb__hand { stroke: #fff; stroke-linecap: round; }
-.sb__hand--h { stroke-width: 7; }
-.sb__hand--m { stroke-width: 4.6; }
-.sb__pin { fill: var(--sb); }
-/* Solar: the sky follows the hour */
-.sb--solar { background: linear-gradient(var(--sky-from), var(--sky-to)); }
-.sb__sun { position: absolute; width: 220px; height: 220px; margin: -110px 0 0 -110px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 244, 214, 0.95) 0%, rgba(255, 190, 90, 0.55) 38%, rgba(255, 150, 60, 0) 70%); }
+.sb__hand--h { stroke-width: 7.5; }
+.sb__hand--m { stroke-width: 5.5; }
+.sb__secline { stroke: #ff9f0a; stroke-width: 1.5; stroke-linecap: round; }
+.sb__hub { fill: #000; stroke: #ff9f0a; stroke-width: 1.6; }
+.sb__second { transform-origin: 0 0; animation: sb-sec 60s steps(60) infinite; }
+@keyframes sb-sec { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.sb--night .sb__num, .sb--night .sb__tick, .sb--night .sb__hand { fill: var(--sb); stroke: var(--sb); }
+.sb--night .sb__num { stroke: none; }
+.sb--night .sb__secline, .sb--night .sb__hub { stroke: var(--sb); }
+.sb--night .sb__tick--minor { stroke-opacity: 0.55; }
+.sb__center--row { flex-direction: row; gap: 160px; }
+/* Clock and Calendar: the analog dial and a month, as StandBy's default widgets page */
+.sb__cal { width: 760px; text-align: left; color: #fff; }
+.sb__month { font-size: 56px; font-weight: 600; letter-spacing: 0.02em; color: #ff3b30; margin-bottom: 26px; }
+.sb__grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 14px; }
+.sb__wd, .sb__day { height: 78px; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sb__wd { font-size: 42px; color: rgba(255, 255, 255, 0.62); font-weight: 600; height: 64px; }
+.sb__day--weekend { color: rgba(255, 255, 255, 0.5); }
+.sb__day--today { color: #fff; background: #ff3b30; border-radius: 50%; width: 78px; margin: 0 auto; }
+.sb__cal--night .sb__month, .sb__cal--night .sb__wd, .sb__cal--night .sb__day { color: var(--sb); }
+.sb__cal--night .sb__day--weekend, .sb__cal--night .sb__wd { opacity: 0.55; }
+.sb__cal--night .sb__day--today { background: var(--sb); color: #000; opacity: 1; }
+/* Solar: a black dial with a flare of the chosen colour that follows the hour across the bottom */
+.sb--solar { background: #000; }
+.sb__flare { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+	background: radial-gradient(ellipse 70% 55% at var(--flare, 50%) 118%, var(--sb) 0%, transparent 70%), radial-gradient(ellipse 120% 90% at var(--flare, 50%) 135%, var(--sb) 0%, transparent 62%);
+	opacity: 0.7; }
+.sb--solar .sb__time { font-weight: 300; color: #fff; font-size: 440px; letter-spacing: -0.04em; text-shadow: none; }
+.sb--night .sb__flare { opacity: 0.4; }
 /* Weather */
 .sb--weather { background: linear-gradient(#10224a, #2a1d5a); }
 .sb__place { font-size: 48px; font-weight: 600; color: rgba(255, 255, 255, 0.8); }

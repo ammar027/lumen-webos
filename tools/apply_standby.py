@@ -25,6 +25,7 @@ edit(P('lib/storage.ts'), [
 ])
 
 edit(P('app.tsx'), [
+ ("useState<Screen>(import.meta.env.DEV && /[?&]settings/.test(location.search) ? 'settings' : 'home')", "useState<Screen>(import.meta.env.DEV && /[?&]settings/.test(location.search) ? 'settings' : import.meta.env.DEV && /[?&]standby/.test(location.search) ? 'standby' : 'home')"),
  ("import {PhotoSaver} from './components/PhotoSaver';", "import {PhotoSaver} from './components/PhotoSaver';\nimport {StandBy, FACES, FACE_NAMES, COLORS, COLOR_NAMES} from './components/StandBy';"),
  ("type Screen = 'home' | 'settings' | 'photos';", "type Screen = 'home' | 'settings' | 'photos' | 'standby';"),
  ("wpType: 'wp-type',", "wpType: 'wp-type', standByFace: 'standby-face', standByColor: 'standby-color', standByNight: 'standby-night',"),
@@ -44,7 +45,7 @@ edit(P('app.tsx'), [
  ("if (configRef.current.photoSaver) setScreen('photos'); else startScreensaver().catch(() => undefined);", "if (configRef.current.standBy) setScreen('standby'); else if (configRef.current.photoSaver) setScreen('photos'); else startScreensaver().catch(() => undefined);"),
  ("if (configRef.current.photoSaver) { setScreen('photos'); return; }", "if (configRef.current.standBy) { setScreen('standby'); return; } if (configRef.current.photoSaver) { setScreen('photos'); return; }"),
  ("setVideoPaused(screen === 'settings' || screen === 'photos');", "setVideoPaused(screen === 'settings' || screen === 'photos' || screen === 'standby');"),
- ("\t\t\t{screen === 'photos' && <PhotoSaver", """\t\t\t{screen === 'standby' && <StandBy face0={config.standByFace} color0={config.standByColor} night={config.standByNight} weatherText={weatherText} showPeriod={config.showAmPm}
+ ("\t\t\t{screen === 'photos' && <PhotoSaver", """\t\t\t{screen === 'standby' && <StandBy face0={(import.meta.env.DEV && (/[?&]face=([a-z]+)/.exec(location.search) || [])[1]) || config.standByFace} color0={(import.meta.env.DEV && (/[?&]color=([a-z]+)/.exec(location.search) || [])[1]) || config.standByColor} night={(import.meta.env.DEV && (/[?&]night=([a-z]+)/.exec(location.search) || [])[1]) || config.standByNight} weatherText={weatherText} showPeriod={config.showAmPm}
 				photoProps={{source: config.photoSource, favorites: config.favoriteWallpapers, picks: config.wallpaperPicks.length > 0 ? config.wallpaperPicks : /^(cloud|local):/.test(config.wallpaper) ? [config.wallpaper] : [], seconds: config.photoSeconds, print: config.photoPrint, backlight: ({dim: 30, low: 10} as Record<string, number>)[config.photoBrightness]}}
 				onFace={(f) => updateConfig({...configRef.current, standByFace: configRef.current.standByFace === 'last' ? 'last' : f})} onColor={(c) => updateConfig({...configRef.current, standByColor: c})} onExit={() => setScreen('home')} />}
 			{screen === 'photos' && <PhotoSaver"""),
