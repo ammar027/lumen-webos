@@ -1,0 +1,89 @@
+# Rebuilds Lumen from the upstream launcher with every layer (tools/rebuild.py, the order in REBUILD.md) and packages the public build
+# (tools/build_release.py: no third-party logos, no private font, public-domain wallpapers).
+#  - a push to main, or "Run workflow": builds the .ipk and keeps it as a workflow artifact (14 days). Nothing is published.
+#  - a tag v* (git tag v1.1.4 && git push origin v1.1.4): the same build, published as the GitHub release of that tag (created if it is not there yet),
+#    and added to the Homebrew Channel repository on the hbc-repo branch.
+#  - "Run workflow" with a tag in "publish_tag": adds that release's existing .ipk to the Homebrew Channel repository (no rebuild).
+# Homebrew Channel: add https://raw.githubusercontent.com/ammar027/lumen-webos/hbc-repo/stable/apps.json in the Channel's settings.
+name: release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish_tag:
+        description: 'Tag whose release .ipk goes into the Homebrew Channel repository (e.g. v1.1.3). Leave empty for a plain build.'
+        required: false
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+env:
+  # the upstream launcher the layers were written against
+  UPSTREAM: 1e2c39b9a988ceb1b258e40e3592bda84a2aa076
+jobs:
+  build:
+    if: github.event.inputs.publish_tag == ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Put the repository where the layers expect it
+        run: |
+          mkdir -p "$HOME/Developer"
+          ln -s "$GITHUB_WORKSPACE" "$HOME/Developer/webos-launcher-tvos"
+      - name: Upstream launcher
+        run: |
+          git clone https://github.com/partridgeworks/webos-launcher app
+          git -C app checkout "$UPSTREAM"
+          npm ci --prefix app
+          npm ci --prefix tools
+      - name: Apply every layer and build
+        run: python3 tools/rebuild.py
+      - name: Public package
+        run: python3 tools/build_release.py
+      - name: Keep the build
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumen-build
+          path: release/*
+          retention-days: 14
+      - name: GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Lumen ${TAG#v}" --notes "Built from $GITHUB_SHA. Install: drop the .ipk onto Dev Manager, or ares-install --device lgtv." --target "$GITHUB_SHA"
+          gh release upload "$TAG" release/*.ipk release/SHA256SUMS.txt --clobber
+      - name: Homebrew Channel repository
+        if: github.ref_type == 'tag'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          IPK=$(ls release/*.ipk)
+          bash tools/hbc_publish.sh "$IPK" "$TAG"
+  hbc:
+    # adds an existing release to the Homebrew Channel repository without rebuilding it
+    if: github.event.inputs.publish_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: The release's .ipk
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.publish_tag }}
+        run: gh release download "$TAG" --pattern '*.ipk' --dir release
+      - name: Homebrew Channel repository
+        env:
+          TAG: ${{ github.event.inputs.publish_tag }}
+        run: bash tools/hbc_publish.sh "$(ls release/*.ipk)" "$TAG"
