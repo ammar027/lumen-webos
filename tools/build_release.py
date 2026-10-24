@@ -33,9 +33,13 @@ open(f'{A}/src/config/iconpack.ts', 'w').write('// Release build: no third-party
 for f in glob.glob(f'{A}/public/wallpapers/*'): os.remove(f)
 titles = []
 for i, (path, title) in enumerate(WALLPAPERS):
-    url = 'https://images.weserv.nl/?url=' + urllib.parse.quote('openaccess-cdn.clevelandart.org/' + path, safe='') + '&w=1920&h=1080&fit=cover&q=88&output=jpg'
+    # straight from the museum's server (a resizing service refused the CI machines), resized to 1920 x 1080 here
+    url = 'https://openaccess-cdn.clevelandart.org/' + path
     dst = f'{A}/public/wallpapers/default-{i}.jpg'
-    sh('curl', '-sfL', '-o', dst, url)
+    orig = f'{A}/public/wallpapers/original-{i}.jpg'
+    sh('curl', '-sfL', '--retry', '3', '-o', orig, url)
+    sh(FF, '-hide_banner', '-loglevel', 'error', '-y', '-i', orig, '-vf', 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080', '-q:v', '2', dst)
+    os.remove(orig)
     sh(FF, '-hide_banner', '-loglevel', 'error', '-y', '-i', dst, '-vf', 'scale=960:540:force_original_aspect_ratio=increase,crop=960:540,gblur=sigma=5,eq=brightness=0.04:saturation=1.35', '-q:v', '2', dst.replace('.jpg', '-blur.jpg'))
     sh(FF, '-hide_banner', '-loglevel', 'error', '-y', '-i', dst, '-vf', 'scale=480:270:force_original_aspect_ratio=increase,crop=480:270,gblur=sigma=9,eq=brightness=0.02:saturation=1.25', '-q:v', '3', dst.replace('.jpg', '-bg.jpg'))
     titles.append({'title': title, 'file': f'wallpapers/default-{i}.jpg'})
