@@ -1,68 +1,12 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {Clock} from './Clock';
-import {langLocale, getClockMode} from '../lib/i18n';
-import {timeParts} from '../lib/clock';
-import {useTimeFormat} from '../hooks/useTimeFormat';
+import {langLocale} from '../lib/i18n';
 import {LOCAL_WALLPAPERS, WALLPAPERS, cloudUrl} from '../config/wallpapers';
 import {resized} from '../lib/wallpaper';
 import {dimForScreensaver, restoreBacklight} from '../lib/tvcontrols';
 import {cachedServer, loadServer, nextAsset, picturePosition, previewUrls, type ImmichServer} from '../lib/immich';
 
 const dateText = () => { try { return new Date().toLocaleDateString(langLocale(), {weekday: 'long', month: 'long', day: 'numeric'}); } catch { return new Date().toDateString(); } };
-
-/** The time as very tall, narrow glass digits (after Apple TV's Portraits screen saver), drawn as vector strokes so they stay crisp at 760 px tall and need no special font. Each digit is a 60 x 240 box;
- *  the paths are the centre lines of thick, round-ended strokes. The fill is a pale see-through gradient, so the picture shows through. */
-const DIGITS: Record<string, string> = {
-	'0': 'M8,32 A22,24 0 0 1 52,32 V208 A22,24 0 0 1 8,208 Z',
-	'1': 'M12,38 L32,8 V232',
-	'2': 'M8,34 A22,26 0 0 1 52,34 C52,92 8,160 8,208 V232 H54',
-	'3': 'M8,8 H30 A22,54 0 0 1 30,116 H18 M30,116 A22,58 0 0 1 30,232 H8',
-	'4': 'M40,8 L8,160 H54 M40,8 V232',
-	'5': 'M52,8 H12 V112 H30 A22,60 0 0 1 30,232 H8',
-	'6': 'M50,8 Q10,50 8,160 V192 A22,40 0 0 0 52,192 V168 A22,40 0 0 0 8,168',
-	'7': 'M8,8 H52 L26,232',
-	'8': 'M8,34 A22,24 0 0 1 52,34 V86 A22,24 0 0 1 8,86 Z M8,148 A22,26 0 0 1 52,148 V206 A22,26 0 0 1 8,206 Z',
-	'9': 'M50,8 Q10,50 8,160 V192 A22,40 0 0 0 52,192 V168 A22,40 0 0 0 8,168'
-};
-
-function GlassClock () {
-	const [now, setNow] = useState(() => new Date());
-	const tv = useTimeFormat();
-	useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 15000); return () => window.clearInterval(id); }, []);
-	const mode = getClockMode();
-	const [h, m] = timeParts(now, mode === '12h' || mode === '24h' ? mode : tv).time.split(':');
-	const chars = (h.length < 2 ? '0' + h : h) + ':' + m;
-	let x = 0;
-	const parts = chars.split('').map((c, i) => {
-		const at = x;
-		x += c === ':' ? 56 : 76;
-		return c === ':'
-			? <g key={i} transform={`translate(${at},0)`}><circle cx="14" cy="84" r="10" class="ambient__gdot" /><circle cx="14" cy="156" r="10" class="ambient__gdot" /></g>
-			: <path key={i} d={DIGITS[c]} transform={c === '9' ? `translate(${at},0) rotate(180 30 120)` : `translate(${at},0)`} class="ambient__gstroke" />;
-	});
-	return (
-		<svg class="ambient__glass" viewBox={`-4 -4 ${x + 8} 248`} aria-hidden="true">
-			<defs><linearGradient id="ambient-glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.66" /><stop offset="1" stop-color="#fff" stop-opacity="0.3" /></linearGradient></defs>
-			<g fill="none" stroke="url(#ambient-glass)">{parts}</g>
-		</svg>
-	);
-}
-
-/** A plain analog clock face: hands move once every 30 s (no second hand, nothing animates). */
-function AnalogClock () {
-	const [now, setNow] = useState(() => new Date());
-	useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 30000); return () => window.clearInterval(id); }, []);
-	const h = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5, m = now.getMinutes() * 6;
-	return (
-		<svg class="ambient__analog" viewBox="-100 -100 200 200" aria-hidden="true">
-			<circle r="96" class="ambient__face" />
-			{Array.from({length: 12}, (_, i) => <line key={i} x1="0" y1="-84" x2="0" y2={i % 3 === 0 ? -70 : -76} class="ambient__tick" transform={`rotate(${i * 30})`} />)}
-			<line x1="0" y1="6" x2="0" y2="-50" class="ambient__hand ambient__hand--h" transform={`rotate(${h})`} />
-			<line x1="0" y1="8" x2="0" y2="-76" class="ambient__hand ambient__hand--m" transform={`rotate(${m})`} />
-			<circle r="5" class="ambient__pin" />
-		</svg>
-	);
-}
 
 interface Item { id: string; url: string }
 
@@ -88,7 +32,7 @@ const decoded = (url: string) => { const img = new Image(); img.src = url; retur
 
 /** A photo screensaver inside Lumen (after the fork's Ambient screen): two full-screen layers swap with a crossfade every `seconds` (opacity only), each picture zooming in very slowly
  *  (transform only); the clock, date and weather sit at the bottom. The pictures come from the wallpaper library, or from your Immich server (source 'immich:...'). Any key or a click returns. */
-export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, clockStyle = 'corner', weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; clockStyle?: string; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
+export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
 	const [layers, setLayers] = useState<[Layer, Layer]>([NO_LAYER, NO_LAYER]);
 	const [front, setFront] = useState(0);
 	const state = useRef({front: 0, alive: true, timer: 0, recent: [] as string[], shown: ''});
@@ -161,21 +105,8 @@ export function PhotoSaver ({source, favorites, picks, seconds, print, backlight
 			{print && <div class="ambient__print" />}
 			<div class="ambient__night" />
 			<div class="ambient__shade" />
-			{clockStyle === 'corner' && <div class="ambient__clock"><Clock showPeriod={showPeriod} /></div>}
-			{clockStyle === 'corner' && <div class="ambient__info">{weatherText && <div class="ambient__weather">{weatherText}</div>}<div class="ambient__date">{dateText()}</div></div>}
-			{clockStyle === 'big' && (
-				<div class="ambient__big">
-					<div class="ambient__bigtime"><Clock showPeriod={showPeriod} /></div>
-					<div class="ambient__bigdate">{dateText()}{weatherText ? ' \u00b7 ' + weatherText : ''}</div>
-				</div>
-			)}
-			{clockStyle === 'portrait' && <div class="ambient__portrait"><GlassClock /></div>}
-			{clockStyle === 'analog' && (
-				<div class="ambient__analogwrap">
-					<AnalogClock />
-					<div class="ambient__bigdate">{dateText()}{weatherText ? ' \u00b7 ' + weatherText : ''}</div>
-				</div>
-			)}
+			<div class="ambient__clock"><Clock showPeriod={showPeriod} /></div>
+			<div class="ambient__info">{weatherText && <div class="ambient__weather">{weatherText}</div>}<div class="ambient__date">{dateText()}</div></div>
 		</div>
 	);
 }
