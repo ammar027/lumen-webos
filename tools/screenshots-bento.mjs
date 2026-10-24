@@ -21,7 +21,7 @@ ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); if (m.id &
 const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({id: i, method, params})); });
 const evalJs = (expression) => send('Runtime.evaluate', {expression, awaitPromise: true});
 
-await send('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false});
+await send('Emulation.setDeviceMetricsOverride', {width: 1920, height: 1080, deviceScaleFactor: 2, mobile: false});
 const KEYS = {left: 37, up: 38, right: 39, down: 40, enter: 13};
 const press = async (name, wait = 160) => {
 	const c = KEYS[name];
@@ -37,8 +37,8 @@ const open = async (path, config) => {
 	await sleep(3500);
 };
 const shot = async (name) => {
-	const r = await send('Page.captureScreenshot', {format: 'jpeg', quality: 90});
-	writeFileSync(OUT + name + '.jpg', Buffer.from(r.data, 'base64'));
+	const r = await send('Page.captureScreenshot', {format: 'png'});
+	writeFileSync(OUT + name + '.png', Buffer.from(r.data, 'base64'));
 	console.log('saved', name);
 };
 
@@ -49,14 +49,13 @@ const scene = async (name, path, cfg, keys = [], wait = 3500) => {
 	await sleep(wait - 3500 > 0 ? wait - 3500 : 400);
 	await shot(name);
 };
-await scene('home-hero', '', {darkMode: 'on', wallpaper: 'local:0'}, ['right', 'right', 'right']);
-await scene('home-clock', '', {darkMode: 'on', wallpaper: 'local:1', clockSize: 'xl'}, ['right', 'right']);
-await scene('control-center', '', {darkMode: 'on', wallpaper: 'local:2'}, ['up', 'up', 'right', 'enter', 'down']);
-await scene('home-light', '', {darkMode: 'off', wallpaper: 'local:3'}, ['right', 'right']);
-await scene('settings-clock', '?settings=clock', {darkMode: 'on', wallpaper: 'local:1'}, ['down', 'down', 'down', 'enter', 'down']);
-await scene('settings-appearance', '?settings=appearance', {darkMode: 'on', wallpaper: 'local:4'}, ['down', 'down']);
-await scene('settings-root', '?settings', {darkMode: 'on', wallpaper: 'local:2'}, ['down']);
-await scene('settings-home', '?settings=home', {darkMode: 'on', wallpaper: 'local:0'}, ['down']);
-await scene('onboarding', '?onboarding', {darkMode: 'on', wallpaper: 'local:2'}, ['enter']);
+const W = {lake: 'cloud:nr4us7nmgknh1', kirk: 'cloud:5l4uwmk2d5oh1', wave: 'cloud:btur1077mm9g1', aoraki: 'cloud:1agwsm6h1g4g1', cherry: 'cloud:5c7dfn1ahxsh1'};
+await scene('home-hero', '', {darkMode: 'on', wallpaper: W.lake}, ['right', 'right', 'right'], 6000);
+await scene('control-center', '', {darkMode: 'on', wallpaper: W.kirk}, ['up', 'up', 'right', 'enter', 'down'], 6000);
+await scene('home-clock', '', {darkMode: 'on', wallpaper: W.wave, clockSize: 'xl'}, ['right', 'right'], 6000);
+await scene('home-light', '', {darkMode: 'off', wallpaper: W.cherry}, ['right', 'right'], 6000);
+await scene('settings-root', '?settings', {darkMode: 'on', wallpaper: W.aoraki}, ['down'], 6000);
+await scene('settings-clock', '?settings=clock', {darkMode: 'on', wallpaper: W.wave}, ['down', 'down', 'down', 'enter', 'down'], 6000);
+await scene('onboarding', '?onboarding', {darkMode: 'on', wallpaper: W.kirk}, ['enter'], 6000);
 ws.close();
 chrome.kill();

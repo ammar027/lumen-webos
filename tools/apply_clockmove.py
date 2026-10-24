@@ -33,7 +33,9 @@ edit(P('app.tsx'), [
 ])
 open(P('theme/global.css'), 'a').write('''
 html.clock-huge .screen > .pill.status { zoom: 2.2; }
-.screen > .pill.status { transform: translate(calc(var(--cdx, 0px) / var(--cz, 1)), calc(var(--cdy, 0px) / var(--cz, 1))); }
+/* with the dock hidden the clock drops to the bottom left, as before (the zoom sizes scale a translate, so it is divided by the zoom) */
+html .screen--dockhidden > .pill.status { transform: translateY(calc(830px / var(--cz, 1))); }
+html.clock-stacked .screen--dockhidden > .pill.status { transform: translateY(calc(730px / var(--cz, 1))); }
 html.clock-small { --cz: 0.8; } html.clock-large { --cz: 1.25; } html.clock-xl { --cz: 1.5; } html.clock-huge { --cz: 2.2; }
 html.pcsize-huge .ambient__block { transform: scale(2.6); }
 html.pcpos-c.pcsize-huge .ambient__block { transform: translateY(-50%) scale(2.6); }
