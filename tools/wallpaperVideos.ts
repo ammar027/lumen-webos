@@ -130,7 +130,7 @@ export const WALLPAPER_VIDEOS: WallpaperVideo[] = [
 	{name: "Hawaii", url: "http://a1.phobos.apple.com/us/r1000/000/Features/atv/AutumnResources/videos/b10-1.mov"},
 	{name: "New York City", url: "http://a1.phobos.apple.com/us/r1000/000/Features/atv/AutumnResources/videos/b10-2.mov"},
 	{name: "San Francisco", url: "http://a1.phobos.apple.com/us/r1000/000/Features/atv/AutumnResources/videos/b10-3.mov"},
-	{name: "Hawaii", url: "http://a1.phobos.apple.com/us/r1000/000/Features/atv/AutumnResources/videos/b8-1.mov"}
+	{name: "Hawaii", url: "http://a1.phobos.apple.com/us/r1000/000/Features/atv/AutumnResources/videos/b8-1.mov"},
 	{name: "Seals", url: "https://sylvan.apple.com/Videos/SE_A016_C009_SDR_20190717_SDR_2K_AVC.mov"},
 	{name: "Southern California to Baja", url: "https://sylvan.apple.com/Videos/comp_A114_C001_0305OT_v10_SDR_FINAL_22062018_SDR_2K_AVC.mov"},
 	{name: "Korea and Japan Night", url: "https://sylvan.apple.com/Videos/comp_GMT026_363A_103NC_E1027_KOREA_JAPAN_NIGHT_v18_SDR_PS_20180907_SDR_2K_AVC.mov"},
