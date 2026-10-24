@@ -83,4 +83,6 @@ edit(P('app.tsx'), [
 			{/* Home stays mounted"""),
  ("onChoose={onChoose} onClose={() => setScreen('home')} />}", "onChoose={onChoose} previews={previews} onClose={() => setScreen('home')} />}"),
 ])
+# the live-glass picture under the blur is appended after the StandBy styles (the order the app on the TV has)
+open(P('theme/global.css'), 'a').write('\n' + open(os.path.join(A, 'liveglass-late.css')).read())
 print('standby applied')
