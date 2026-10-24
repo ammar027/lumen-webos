@@ -81,7 +81,7 @@ edit(P('app.tsx'), [
 			if (key.indexOf('selectall:') === 0) {
 				const all = group(key.slice(10));
 				next = allOn(key.slice(10)) ? effPicks.filter((k) => all.indexOf(k) === -1) : effPicks.concat(all.filter((k) => effPicks.indexOf(k) === -1));
-			} else next = effPicks.indexOf(key) !== -1 ? effPicks.filter((k) => k !== key) : effPicks.concat(key);
+			} else next = [key];   // OK sets this picture (and only it); Select all ticks a whole category, and then each start shows one of them
 			updateConfig({...config, wallpaperPicks: next, wallpaper: next.length > 0 ? 'picks' : 'local:0', videoWallpaper: false});
 		};
 		const entries: WallpaperEntry[] = [];
