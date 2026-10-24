@@ -22,6 +22,11 @@ Made from the dev preview at 1920 x 1080 (`node tools/screenshots.mjs`); the wal
 ![Control Center: sound, picture, sleep timer, screensaver, quick actions and volume](docs/screenshots/control-center.jpg)
 ![Settings, Options tab: a scrolling list with a scroll indicator](docs/screenshots/settings-options.jpg)
 
+## Supported TVs
+
+Lumen is tested on webOS 22 (Chromium 87) and webOS 25. It is built for Chromium 79 and newer (webOS 6 and later). Older TVs (webOS 4.x, Chromium 53) cannot run it: Lumen
+then shows a short "too old" message instead of a blank screen. Rooted TVs only for the live app list, Home button and screensaver features (see below).
+
 ## What it adds
 
 - **tvOS navigation and look:** a glass dock row of apps, a second row of more apps and a Recent row that appear as you move down, focus lift with a name
