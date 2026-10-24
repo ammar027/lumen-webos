@@ -17,7 +17,7 @@ edit(P('lib/storage.ts'), [
 edit(P('app.tsx'), [
  ("pcBlur: 'pc-blur',", "pcBlur: 'pc-blur', pcLook: 'pc-look',"),
  ("[OPTION.pcBlur]: 'screensaver',", "[OPTION.pcBlur]: 'screensaver', [OPTION.pcLook]: 'screensaver',"),
- ("\t\t\t{id: OPTION.pcBlur,", "\t\t\t{id: OPTION.pcLook, label: 'Clock look', description: 'Frosted: see-through white digits with a soft edge, like the iOS lock screen. Solid: plain white digits.', value: true, valueText: config.pcLook === 'solid' ? 'Solid' : 'Frosted'},\n\t\t\t{id: OPTION.pcBlur,"),
+ ("\t\t\t{id: OPTION.pcBlur,", "\t\t\t{id: OPTION.pcLook, label: 'Clock look on photos', description: 'Frosted: see-through white digits with a soft edge, like the iOS lock screen. Solid: plain white digits.', value: true, valueText: config.pcLook === 'solid' ? 'Solid' : 'Frosted'},\n\t\t\t{id: OPTION.pcBlur,"),
  ("\t\t\tif (id === OPTION.pcBlur) return", "\t\t\tif (id === OPTION.pcLook) return {choices: ['Frosted', 'Solid'], choice: config.pcLook === 'solid' ? 1 : 0};\n\t\t\tif (id === OPTION.pcBlur) return"),
  ("\t\telse if (optionId === OPTION.pcBlur) updateConfig(", "\t\telse if (optionId === OPTION.pcLook) updateConfig({...config, pcLook: index === 1 ? 'solid' : 'frosted'});\n\t\telse if (optionId === OPTION.pcBlur) updateConfig("),
  ("\t\tc.toggle('pc-noinfo', !config.pcInfo);", "\t\tc.toggle('pc-noinfo', !config.pcInfo);\n\t\tc.toggle('pc-frosted', config.pcLook !== 'solid');"),
