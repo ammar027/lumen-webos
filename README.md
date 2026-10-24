@@ -39,8 +39,7 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 - **Appearance:** Light, Dark or Auto (dark from 7 pm to 6 am), in Settings and in the Control Center; the dock can slide away with Down or after a few idle seconds.
 - **Video wallpaper:** Settings > Wallpaper > Video. Pick one or several places (Switzerland, Norway, Iceland, Italy, Greece, Germany, Czechia, Spain, the Netherlands,
   Portugal and more, plus Apple's aerial videos); it streams from the internet and pauses LG's screensaver while it plays.
-- **StandBy:** a full-screen face to leave on, after Apple's StandBy: Digital, Float, Analog, Calendar, Solar, Photos, Weather, Fade and Flow, in seven colours, with a red Night Mode. Pick it as the screensaver (Settings > Screensaver).
-  ![StandBy faces](docs/bento/bento-standby.png)
+- **StandBy:** a full-screen face to leave on, after Apple's StandBy: Digital, Analog, Calendar, Solar, Photos, Weather, Fade and Flow, in seven colours, with a red Night Mode. Pick it as the screensaver (Settings > Screensaver).
 - **Clock:** Settings > Clock has the style (digital, date, seconds, analog), colour, size, weight, position, a Stacked layout with a weather icon, and a Frosted look; every choice shows a live preview. The photo screensaver has its own clock position, size and blur.
 - **Photo screensaver:** a slideshow from the wallpaper library (or your own Immich server), with the clock, date and weather. Optional [Immich](docs/immich.md) wallpaper and screensaver source.
 - **First-run setup and Apple TV defaults:** a short setup on a fresh install, and one button (Settings > System) that sets everything to how tvOS starts.

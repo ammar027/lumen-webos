@@ -38,24 +38,13 @@ def page(name, tiles):
     print('wrote', f'{OUT}/{name}.png')
 
 page('bento-main', [
-    tile('home-dark', 'Lumen 1.1', 'A tvOS-style home screen for your LG TV', hero=True),
+    tile('home-hero', 'Lumen 1.1', 'A tvOS-style home screen for your LG TV', hero=True),
     tile('control-center', 'Control Center', 'Sound, picture, sleep timer, theme', pos='96% 24%', size='215%'),
     tile('settings-clock', 'Clock, your way', 'Layout, size, weight and a live preview'),
-    tile('standby-float', 'StandBy', 'Nine faces, colours and Night Mode'),
-    tile('home-light', 'Light, dark or automatic', 'Frosted glass in both'),
-    tile('standby-analog', 'Analog', 'A clean dial'),
-    tile('standby-digital', 'Digital', 'Big and readable across the room'),
-    tile('standby-solar', 'Solar', 'The day as a sun arc'),
-    tile('settings', 'Settings, Apple TV style', 'A page for every option'),
-])
-page('bento-standby', [
-    tile('standby-float', 'StandBy', 'Nine faces for the screen you leave on', hero=True),
-    tile('standby-digital', 'Digital', 'One big number, any colour'),
-    tile('standby-analog', 'Analog', 'A clean dial'),
-    tile('standby-solar', 'Solar', 'The day as a sun arc'),
-    tile('standby-photos', 'Photos', 'Your pictures, clock on top'),
-    tile('standby-calendar', 'Calendar', 'The month at a glance'),
-    tile('standby-weather', 'Weather', 'The temperature at a glance'),
-    tile('standby-fade', 'Fade', 'Slow, soft colour'),
-    tile('standby-flow', 'Flow', 'Moving colour behind the time'),
+    tile('home-clock', 'A clock that fits', 'Stacked, frosted, any size'),
+    tile('home-light', 'Frosted glass', 'Light, dark or automatic'),
+    tile('settings-root', 'Settings, Apple TV style', 'A page for every topic'),
+    tile('settings-appearance', 'Appearance', 'Theme, glass and text size'),
+    tile('settings-home', 'Home Screen', 'Dock, recents and app rows'),
+    tile('onboarding', 'First-run setup', 'A few questions and you are done'),
 ])

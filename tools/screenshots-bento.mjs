@@ -42,27 +42,21 @@ const shot = async (name) => {
 	console.log('saved', name);
 };
 
-const base = {onboarded: true, weatherCity: 'London', weatherCountry: 'GB', wallpaper: 'local:0', clockLayout: 'stacked', clockLook: 'frosted'};
+const base = {onboarded: true, weatherCity: 'London', weatherCountry: 'GB', clockLayout: 'stacked', clockLook: 'frosted'};
 const scene = async (name, path, cfg, keys = [], wait = 3500) => {
 	await open(path, {...base, ...cfg});
 	for (const k of keys) await press(k, 650);
 	await sleep(wait - 3500 > 0 ? wait - 3500 : 400);
 	await shot(name);
 };
-await scene('home-dark', '', {darkMode: 'on'}, ['right', 'right', 'right']);
-await scene('home-light', '', {darkMode: 'off'}, ['right', 'right']);
-await scene('control-center', '', {darkMode: 'on'}, ['up', 'up', 'right', 'enter', 'down']);
-await scene('settings', '?settings', {darkMode: 'on'}, ['down', 'down']);
-await scene('settings-clock', '?settings=clock', {darkMode: 'on'}, ['down', 'down', 'down', 'enter', 'down']);
-await scene('standby-digital', '?standby&face=digital&color=white', {}, []);
-await scene('standby-float', '?standby&face=float&color=white', {}, []);
-await scene('standby-analog', '?standby&face=analog&color=white', {}, []);
-await scene('standby-solar', '?standby&face=solar&color=white', {}, []);
-await scene('standby-photos', '?standby&face=photos&color=white', {}, []);
-await scene('standby-calendar', '?standby&face=calendar&color=white', {}, []);
-await scene('standby-weather', '?standby&face=weather&color=white', {}, []);
-await scene('standby-fade', '?standby&face=fade&color=white', {}, []);
-await scene('standby-flow', '?standby&face=flow&color=white', {}, []);
-await scene('onboarding', '?onboarding', {darkMode: 'on'}, ['enter']);
+await scene('home-hero', '', {darkMode: 'on', wallpaper: 'local:0'}, ['right', 'right', 'right']);
+await scene('home-clock', '', {darkMode: 'on', wallpaper: 'local:1', clockSize: 'xl'}, ['right', 'right']);
+await scene('control-center', '', {darkMode: 'on', wallpaper: 'local:2'}, ['up', 'up', 'right', 'enter', 'down']);
+await scene('home-light', '', {darkMode: 'off', wallpaper: 'local:3'}, ['right', 'right']);
+await scene('settings-clock', '?settings=clock', {darkMode: 'on', wallpaper: 'local:1'}, ['down', 'down', 'down', 'enter', 'down']);
+await scene('settings-appearance', '?settings=appearance', {darkMode: 'on', wallpaper: 'local:4'}, ['down', 'down']);
+await scene('settings-root', '?settings', {darkMode: 'on', wallpaper: 'local:2'}, ['down']);
+await scene('settings-home', '?settings=home', {darkMode: 'on', wallpaper: 'local:0'}, ['down']);
+await scene('onboarding', '?onboarding', {darkMode: 'on', wallpaper: 'local:2'}, ['enter']);
 ws.close();
 chrome.kill();
