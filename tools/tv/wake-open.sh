@@ -11,13 +11,13 @@ mkdir -p /var/lib/homehook; touch "$FLAG"
 prev=""; until=0; since=0; tick=$(date +%s)
 while [ -f "$FLAG" ]; do
   now=$(date +%s)
-  state=$(luna-send -n 1 luna://com.webos.service.tvpower/power/getPowerState '{}' </dev/null 2>/dev/null | sed -n 's/.*"state":"\([^"]*\)".*/\1/p')
+  state=$(luna-send -n 1 luna://com.webos.service.tvpower/power/getPowerState '{}' </dev/null 2>/dev/null | sed -n 's/.*"state": *"\([^"]*\)".*/\1/p')
   gap=$((now - tick)); tick=$now
   # a wake: the power state is back to Active from standby or off, or this loop missed its ticks (the TV was suspended)
   if { [ "$state" = Active ] && [ -n "$prev" ] && [ "$prev" != Active ] && [ "$prev" != "Screen Saver" ]; } || [ "$gap" -gt 10 ]; then until=$((now + WAKE)); since=0; fi
   prev=$state
   if [ "$now" -lt "$until" ] && [ "$state" = Active ]; then
-    front=$(luna-send -n 1 luna://com.webos.applicationManager/getForegroundAppInfo '{}' </dev/null 2>/dev/null | sed -n 's/.*"appId":"\([^"]*\)".*/\1/p')
+    front=$(luna-send -n 1 luna://com.webos.applicationManager/getForegroundAppInfo '{}' </dev/null 2>/dev/null | sed -n 's/.*"appId": *"\([^"]*\)".*/\1/p')
     if [ "$front" = "$APP" ]; then
       [ "$since" -eq 0 ] && since=$now
       [ $((now - since)) -ge "$SETTLE" ] && until=0

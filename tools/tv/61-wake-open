@@ -1,0 +1,8 @@
+#!/bin/sh
+# webosbrew boot hook: start the wake tool (see /var/lib/homehook/wake-open.sh). Never blocks boot.
+# Uninstall: rm /var/lib/webosbrew/init.d/61-wake-open /var/lib/homehook/wake-open; kill the tool (killall wake-open.sh).
+[ -x /var/lib/homehook/wake-open.sh ] || exit 0
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
+ps | grep -v grep | grep -q "homehook/wake-open.sh" && exit 0
+setsid nohup /var/lib/homehook/wake-open.sh </dev/null >/dev/null 2>&1 &
+exit 0
