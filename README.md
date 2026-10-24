@@ -46,10 +46,10 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 
 ## Easy install: download the .ipk
 
-Don't want to build anything? Download `com.ammar027.lumen_1.1.1_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
+Don't want to build anything? Download `com.ammar027.lumen_1.1.2_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
 
 - **With a mouse and no command line:** open [Dev Manager Desktop](https://github.com/webosbrew/dev-manager-desktop/releases), add your TV, go to *Apps* and drop the `.ipk` onto the window.
-- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.1.1_all.ipk`.
+- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.1.2_all.ipk`.
 
 The release build leaves out third-party app logos and the default wallpapers are public-domain paintings; apps without an icon get a plain tile.
 Optional: see [Native Home selection](docs/native-home.md) for supported firmware, required metadata, and restoration steps.
