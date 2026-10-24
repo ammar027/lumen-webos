@@ -15,6 +15,10 @@ def edit(path, pairs):
     open(path, 'w').write(s)
 
 shutil.copy(os.path.join(A, 'StandBy.tsx'), P('components/StandBy.tsx'))
+# SF Pro Rounded figures for Float, only when the private font file was added to this build (tools/make_sf_font.py); otherwise the vector bubbles are drawn
+edit(P('main.tsx'), [
+ ("render(<App />, document.getElementById('root')!);", "if ('FontFace' in window) {\n\tnew FontFace('SF Rounded Private', `url(${new URL('private/sf-rounded.woff2', location.href).href})`, {weight: '1 1000'}).load().then((face) => { document.fonts.add(face); }).catch(() => undefined);\n}\nrender(<App />, document.getElementById('root')!);"),
+])
 shutil.copy(os.path.join(A, 'PhotoSaver.tsx'), P('components/PhotoSaver.tsx'))
 open(P('theme/global.css'), 'a').write('\n' + open(os.path.join(A, 'standby.css')).read())
 
@@ -49,5 +53,34 @@ edit(P('app.tsx'), [
 				photoProps={{source: config.photoSource, favorites: config.favoriteWallpapers, picks: config.wallpaperPicks.length > 0 ? config.wallpaperPicks : /^(cloud|local):/.test(config.wallpaper) ? [config.wallpaper] : [], seconds: config.photoSeconds, print: config.photoPrint, backlight: ({dim: 30, low: 10} as Record<string, number>)[config.photoBrightness]}}
 				onFace={(f) => updateConfig({...configRef.current, standByFace: configRef.current.standByFace === 'last' ? 'last' : f})} onColor={(c) => updateConfig({...configRef.current, standByColor: c})} onExit={() => setScreen('home')} />}
 			{screen === 'photos' && <PhotoSaver"""),
+])
+# live previews in Settings: the choices pages of StandBy face, colour and Night Mode show the face in the glyph's place
+edit(P('components/SettingsList.tsx'), [
+ ("import {t as tr} from '../lib/i18n';", "import type {ComponentChildren} from 'preact';\nimport {t as tr} from '../lib/i18n';"),
+ ("\t/** under the glyph: what the focused row does */", "\t/** a small live picture in the glyph's place (StandBy's faces) */\n\tpreview?: ComponentChildren;\n\t/** under the glyph: what the focused row does */"),
+ ("export function SettingsList ({title, glyph, description,", "export function SettingsList ({title, glyph, preview, description,"),
+ ('<div class="slist__icon"><Glyph name={glyph} /></div>', "<div class={`slist__icon${preview ? ' slist__icon--preview' : ''}`}>{preview || <Glyph name={glyph} />}</div>"),
+])
+edit(P('screens/Settings.tsx'), [
+ ("import {t as tr} from '../lib/i18n';", "import type {ComponentChildren} from 'preact';\nimport {t as tr} from '../lib/i18n';"),
+ ("\tonChoose: (optionId: string, index: number) => void;\n", "\tonChoose: (optionId: string, index: number) => void;\n\t/** a small live picture for the glyph's place on an option's choices page, by option id (StandBy) */\n\tpreviews?: Record<string, (index: number) => ComponentChildren>;\n"),
+ ("\tdescriptions: string[];\n\tticks?: boolean;", "\tdescriptions: string[];\n\tpreview?: (i: number) => ComponentChildren;\n\tticks?: boolean;"),
+ ("onOption, onChoose, onClose}: Props) {", "onOption, onChoose, previews, onClose}: Props) {"),
+ ("\t\t\t\tticks: true,\n\t\t\t\tactivate: (i) => { onChoose(o.id, i); pop(); }", "\t\t\t\tticks: true,\n\t\t\t\tpreview: previews && previews[o.id],\n\t\t\t\tactivate: (i) => { onChoose(o.id, i); pop(); }"),
+ ("\t\t\t\t\t\tglyph={list.glyph}\n", "\t\t\t\t\t\tglyph={list.glyph}\n\t\t\t\t\t\tpreview={list.preview ? list.preview(top.focus) : undefined}\n"),
+])
+edit(P('app.tsx'), [
+ ("import {StandBy, FACES, FACE_NAMES, COLORS, COLOR_NAMES} from './components/StandBy';", "import {StandBy, StandByPreview, FACES, FACE_NAMES, COLORS, COLOR_NAMES} from './components/StandBy';"),
+ ("\treturn (\n\t\t<>\n\t\t\t{/* Home stays mounted", """\t// the choices pages of the StandBy settings show the face being chosen, live and small
+	const previews = {
+		[OPTION.standByFace]: (i: number) => <StandByPreview face={i === 0 ? 'last' : FACES[i - 1]} color={config.standByColor} night={config.standByNight} weatherText={weatherText} showPeriod={config.showAmPm} />,
+		[OPTION.standByColor]: (i: number) => <StandByPreview face={config.standByFace === 'last' ? 'float' : config.standByFace} color={COLORS[i] || 'white'} night="off" weatherText={weatherText} showPeriod={config.showAmPm} />,
+		[OPTION.standByNight]: (i: number) => <StandByPreview face={config.standByFace === 'last' ? 'analog' : config.standByFace} color={config.standByColor} night={['auto', 'on', 'off'][i] || 'auto'} weatherText={weatherText} showPeriod={config.showAmPm} />
+	};
+
+	return (
+		<>
+			{/* Home stays mounted"""),
+ ("onChoose={onChoose} onClose={() => setScreen('home')} />}", "onChoose={onChoose} previews={previews} onClose={() => setScreen('home')} />}"),
 ])
 print('standby applied')

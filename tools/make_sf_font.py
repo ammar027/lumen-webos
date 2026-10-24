@@ -22,3 +22,19 @@ s.populate(unicodes=ranges); s.subset(f)
 subset.save_font(f, OUT + '/sf.woff2', opts)
 os.remove(tmp)
 print('sf.woff2', os.path.getsize(OUT + '/sf.woff2') // 1024, 'KB')
+
+# SF Pro Rounded, only the figures and a few signs, at its heaviest weight: the StandBy Float face's numerals (components/StandBy.tsx). Private for the same reason as above.
+rounded = TTFont('/System/Library/Fonts/SFNSRounded.ttf')
+axes = {a.axisTag: (a.minValue, a.defaultValue, a.maxValue) for a in rounded['fvar'].axes}
+print('rounded axes', axes)
+rounded = instancer.instantiateVariableFont(rounded, {'wght': axes['wght'][2]})
+rtmp = OUT + '/sfr-tmp.ttf'
+rounded.save(rtmp)
+ro = subset.Options(); ro.flavor = 'woff2'; ro.layout_features = ['*']; ro.notdef_outline = True
+rf = subset.load_font(rtmp, ro)
+rs = subset.Subsetter(ro)
+rs.populate(unicodes=list(range(0x30, 0x3B)) + [0x20, 0x2E, 0x2C, 0xB0])
+rs.subset(rf)
+subset.save_font(rf, OUT + '/sf-rounded.woff2', ro)
+os.remove(rtmp)
+print('sf-rounded.woff2', os.path.getsize(OUT + '/sf-rounded.woff2') // 1024, 'KB')
