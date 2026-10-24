@@ -53,5 +53,15 @@ html.liveblur:not(.light) .rows > .row:first-child::after {
 	opacity: 0; transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 200ms ease;
 }
 html.liveblur:not(.light) .rows > .row:first-child.row--focused::after { opacity: 1; }
-/* our glass bar starts 16px below the top of its row (the fork's starts at the row's top), so the highlight sits on the bar's edge */
-html.liveblur:not(.light) .rows > .row:first-child::after { top: 16px; }
+/* our glass bar is not the fork's: the highlight is drawn on the bar itself, a thin top border that follows the rounded corners (a border tapers to nothing round a corner), shown only
+   near the focused app by a mask, so it reaches the first and last app instead of stopping 130px short. --hl-x is registered so the mask slides with focus. */
+@property --hl-x { syntax: '<length>'; inherits: false; initial-value: 0px; }
+html.liveblur:not(.light) .rows > .row:first-child::after {
+	left: calc(50% - var(--row-w, 1556px) / 2 - 24px); width: calc(var(--row-w, 1556px) + 48px); right: auto; top: 16px; height: calc(var(--layout-tile-height) + 72px);
+	box-sizing: border-box; border-radius: 58px; border-top: 1.5px solid rgba(255, 255, 255, 0.9); border-left: 0; border-right: 0; border-bottom: 0;
+	background: none; box-shadow: inset 0 16px 20px -16px rgba(255, 255, 255, 0.22); transform: none;
+	--hl-x: var(--sel-x, 0px);
+	-webkit-mask-image: linear-gradient(90deg, transparent calc(50% + var(--hl-x) - 150px), #000 calc(50% + var(--hl-x)), transparent calc(50% + var(--hl-x) + 150px));
+	mask-image: linear-gradient(90deg, transparent calc(50% + var(--hl-x) - 150px), #000 calc(50% + var(--hl-x)), transparent calc(50% + var(--hl-x) + 150px));
+	transition: --hl-x 260ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 200ms ease;
+}
