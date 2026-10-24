@@ -1,0 +1,8 @@
+#!/bin/sh
+# webosbrew boot hook: start the update-banner clearer (see /var/lib/homehook/clear-update-banner.sh). Never blocks boot.
+# Uninstall: rm /var/lib/webosbrew/init.d/62-clear-update-banner /var/lib/homehook/clear-update-banner; killall clear-update-banner.sh
+[ -x /var/lib/homehook/clear-update-banner.sh ] || exit 0
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
+ps | grep -v grep | grep -q "homehook/clear-update-banner.sh" && exit 0
+setsid nohup /var/lib/homehook/clear-update-banner.sh </dev/null >/dev/null 2>&1 &
+exit 0
