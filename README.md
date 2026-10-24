@@ -29,6 +29,8 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
   under the tile, a wallpaper library (cloud and bundled, shuffle per category, favourites, auto-change, night dimming), folders, hold-OK menu
   (move, remove, add to folder), and a Settings app in the same style.
 - **Control Center:** a tvOS 26-style grid: sound, picture mode, theme, sleep timer, LG Home, screensaver, screen off, Settings and backlight.
+- **Edit apps on the home screen:** hold OK on an app for Move, Uninstall App (a second OK confirms; never for Lumen, LG's own apps or the Homebrew Channel), Remove and Add to a folder. A lifted app moves along its row with Left and Right and a whole row with Up and Down. The remote's 1 to 6 open the first six apps on the glass bar. LG's App Store can be added to the home screen. (Ideas from Sam Renfrew's fork.)
+- **Dimming:** Settings > Wallpaper > Dim the wallpaper (off, at night, always) and Settings > Home Screen > Dim when the dock is hidden.
 - **Recent Apps:** a card for each open app (time-pill menu, or hold OK on an app). Up closes an app, Close all closes the lot.
 - **Appearance:** Light, Dark or Auto (dark from 7 pm to 6 am), in Settings and in the Control Center; the dock can slide away with Down or after a few idle seconds.
 - **Video wallpaper:** Settings > Wallpaper > Video. Pick one or several places (Switzerland, Norway, Iceland, Italy, Greece, Germany, Czechia, Spain, the Netherlands,
@@ -54,6 +56,14 @@ Don't want to build anything? Download `com.ammar027.lumen_1.1.3_all.ipk` from t
 The release build leaves out third-party app logos and the default wallpapers are public-domain paintings; apps without an icon get a plain tile.
 Optional: see [Native Home selection](docs/native-home.md) for supported firmware, required metadata, and restoration steps.
 The v1.0.9 package does not contain the required Home category. The existing redirect scripts are under [tools/tv/](tools/tv/).
+
+## Install and update from the TV (Homebrew Channel)
+
+In the Homebrew Channel, open its settings and add this repository URL, then install Lumen from the Channel's app list:
+
+`https://raw.githubusercontent.com/ammar027/lumen-webos/hbc-repo/stable/apps.json`
+
+Each tagged release (`v1.x.y`) is added to it by the GitHub workflow ([.github/workflows/release.yml](.github/workflows/release.yml)), which rebuilds the app from the upstream launcher with every layer in [REBUILD.md](REBUILD.md) (`tools/rebuild.py`). A push to `main` builds a test package and keeps it as a workflow artifact; nothing is published. Idea and repository generator from Sam Renfrew's fork.
 
 ## How to build it
 

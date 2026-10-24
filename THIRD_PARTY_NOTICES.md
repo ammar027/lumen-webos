@@ -17,6 +17,8 @@ affiliated with or endorsed by them, or by LG Electronics, Apple Inc. or Samsung
 
 ## Sam Renfrew's fork
 
+Later additions from the same fork (MIT), October 2026: the wallpaper dimming options, the App Store tile, the uninstall menu entry, moving a lifted app a row at a time and the number keys (`tools/apply_wpdim.py`, `tools/apply_samsmall.py`, `tools/apply_editmode.py`), the Homebrew Channel repository generator and release workflow (`tools/gen_hbc_repo.py`, `.github/workflows/release.yml`), the wake tool's logic (`tools/tv/wake-open.sh`) and the notes in `docs/prior-art.md` and `docs/power-on.md`.
+
 The canvas backdrops for the lower rows and Settings (`lib/blurCanvas.ts`), the open-app dot, the Art and Landscapes wallpaper lists and their generator (`tools/harvest_open.py`, `tools/build_catalog.py`) come from <https://github.com/samrenfrew/lumen-webos> (MIT). The frame-rate findings behind them are in that fork's `docs/down-up-lag-review.md`. Art pictures are public-domain paintings (Cleveland Museum of Art, Met); Landscapes are Wikimedia Commons pictures under their own licences, with the credit kept in the list.
 
 ## xcv58's PR #8
