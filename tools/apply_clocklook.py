@@ -29,11 +29,12 @@ html.clock-frosted .screen > .pill.status .clock__time, html.clock-frosted .scre
 	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.14) 42%, rgba(255, 255, 255, 0.30) 100%), var(--wp-blur, none);
 	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-repeat: no-repeat;
 	-webkit-background-clip: text; background-clip: text;
-	-webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.62); text-shadow: none;
-	filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.28));
+	-webkit-text-stroke: 0.6px rgba(255, 255, 255, 0.42); text-shadow: none;
+	filter: drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.35)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.28));
 }
 /* the colon was its own layer (position, opacity), so the frosted fill skipped it */
 html.clock-frosted .clock__colon, html.pc-frosted .clock__colon { position: static !important; opacity: 1 !important; top: 0 !important; }
+html.clock-frosted .screen > .pill.status .status__date { -webkit-text-stroke: 0; }
 html.clock-frosted .screen > .pill.status .clock__period { color: rgba(255, 255, 255, 0.7); -webkit-text-stroke: 0; }
 ''')
 print('clocklook applied')

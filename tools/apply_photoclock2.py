@@ -24,7 +24,7 @@ edit(P('app.tsx'), [
  ("config.pcInfo, config.pcBlur]);", "config.pcInfo, config.pcBlur, config.pcLook]);"),
 ])
 open(P('theme/global.css'), 'a').write('''
-html.pc-frosted .ambient__block .clock__time { color: rgba(255, 255, 255, 0.58); -webkit-text-stroke: 2px rgba(255, 255, 255, 0.72); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.28); font-weight: 800; }
+html.pc-frosted .ambient__block .clock__time { color: rgba(255, 255, 255, 0.58); -webkit-text-stroke: 0.8px rgba(255, 255, 255, 0.45); text-shadow: 0 4px 30px rgba(0, 0, 0, 0.28); font-weight: 800; }
 html.pc-frosted .ambient__block .clock__period { color: rgba(255, 255, 255, 0.7); -webkit-text-stroke: 0; }
 ''')
 print('photoclock2 applied')
