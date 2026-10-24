@@ -27,7 +27,7 @@ edit(P('app.tsx'), [
  ("\t\t\t{controls && <ControlCenter", "\t\t\t{screen === 'switcher' && <AppSwitcher apps={apps.filter((a) => running.indexOf(a.id) !== -1 && a.id !== 'com.ammar027.lumen')}\n\t\t\t\tonOpen={(id, title) => { setScreen('home'); open(id, title); }}\n\t\t\t\tonCloseApp={(id) => { setRunning((r) => r.filter((x) => x !== id)); closeApp(id).catch(() => showToast(\"Couldn't close the app\", 'error')); }}\n\t\t\t\tonCloseAll={() => { const ids = running.filter((x) => x !== 'com.ammar027.lumen'); setRunning((r) => r.filter((x) => ids.indexOf(x) === -1)); Promise.all(ids.map(closeApp)).then(() => showToast('All apps closed')).catch(() => showToast(\"Couldn't close the apps\", 'error')); setScreen('home'); }}\n\t\t\t\tonExit={() => setScreen('home')} />}\n\t\t\t{controls && <ControlCenter"),
 ])
 css = '''
-.switcher { position: absolute; inset: 0; z-index: 40; background: rgba(8, 10, 18, 0.72); display: flex; flex-direction: column; align-items: center; padding-top: 110px; color: #fff; }
+.switcher { position: absolute; inset: 0; z-index: 200; background: rgba(8, 10, 18, 0.86); display: flex; flex-direction: column; align-items: center; padding-top: 110px; color: #fff; }
 .switcher__title { font-size: 44px; font-weight: 700; margin: 0 0 70px; }
 .switcher__empty { font-size: 34px; opacity: .7; margin-top: 200px; }
 .switcher__cards { display: flex; gap: 56px; max-width: 1760px; overflow: hidden; padding: 40px 60px; }
