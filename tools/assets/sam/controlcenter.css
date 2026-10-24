@@ -1,0 +1,106 @@
+/* ---------- Control Center (components/ControlCenter.tsx), sized and laid out like tvOS: no panel, each control its own piece of glass ----------
+   One grid, four squares wide: circles are one square, tiles two, the backlight bar three. Every control is the same height, fully rounded,
+   18px apart. The glass and the focus are the top buttons' own (.pill), live blur included, so the colours match. A control that is on
+   shows a blue icon, as on tvOS. */
+/* :root lifts this above html.liveblur.light .panel, which would paint a light panel behind the controls */
+html:root body .panel.panel--cc {
+	--cc-u: 90px; --cc-gap: 18px; --cc-on: rgb(64, 196, 255);
+	background: none !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+	width: calc(4 * var(--cc-u) + 3 * var(--cc-gap)); padding: 0; top: 150px; border-radius: 0;
+}
+/* Inputs: the same glass, three grid squares wide, one pill per input at the size of a Control Center list's options (.cc__opt) */
+html:root body .panel.panel--inputs { width: calc(3 * var(--cc-u) + 2 * var(--cc-gap)); }
+/* LG's input pictures fill only part of their square: at 50px in the 40px icon space they draw about 28px across, like the other icons */
+.cc__inputicon { width: 50px; height: 50px; margin: -5px; object-fit: contain; filter: brightness(0) invert(1) opacity(0.9); }
+html.light .cc__inputicon { filter: brightness(0) opacity(0.72); }
+html.light .cc__mod--focused .cc__inputicon { filter: brightness(0) invert(1); }
+.cc__row { display: flex; flex-direction: row; margin-bottom: var(--cc-gap); }
+.cc__row > * + * { margin-left: var(--cc-gap); }
+.cc__mod {
+	position: relative; flex: 0 0 auto; height: var(--cc-u); border-radius: calc(var(--cc-u) / 2); box-sizing: border-box; color: #fff;
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.07) 42%, rgba(255, 255, 255, 0.16) 100%), var(--wp-blur, var(--glass-fallback));
+	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-position: 0 0, var(--dev-left, 0px) var(--dev-top, 0px); background-repeat: no-repeat;
+	background-color: rgba(30, 36, 50, 0.30);
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.9), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.42), inset 0 0 14px rgba(255, 255, 255, 0.10), 0 8px 18px rgba(0, 0, 0, 0.25);
+	text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+	transition: transform var(--motion-focus-ms) ease-out;
+}
+/* a layer each, kept: the open and close fades would otherwise make and drop a layer per control, and each drop redraws its shadow */
+.panel--cc .cc__mod, .panel--cc .cc__caption { will-change: transform, opacity; }
+.cc__mod--focused { transform: scale(1.1); background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.50), rgba(255, 255, 255, 0.20) 55%, rgba(255, 255, 255, 0.34)), var(--wp-blur, var(--glass-fallback)); }
+html.liveblur .cc__mod {
+	-webkit-backdrop-filter: var(--live-glass); backdrop-filter: var(--live-glass);
+	background-attachment: scroll !important; background-color: var(--live-tint) !important; background-blend-mode: normal !important;
+}
+/* only the focused or open control keeps its live blur: each one adds about 2 ms of GPU draw to every frame (docs/frame-rate.md) */
+html.liveblur .topbar > .pill:not(.pill--focused):not(.pill--open), html.liveblur .topcap:not(.topcap--focused):not(.topcap--open),
+html.liveblur .cc__mod:not(.cc__mod--focused) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* the glass bar has no live blur (it halved the frame rate of every move); the sheen and rims keep it glass. Its own layer, so a move does not repaint it */
+html.liveblur .rows > .row:first-child::before { -webkit-backdrop-filter: none; backdrop-filter: none; will-change: transform; }
+/* Settings > Appearance > Dock blur puts it back: about 2 ms more GPU draw per frame, felt most going left and right */
+html.liveblur.dockblur .rows > .row:first-child::before { -webkit-backdrop-filter: var(--live-glass); backdrop-filter: var(--live-glass); }
+.cc__mod svg { position: static; width: 44px; height: 44px; fill: none; stroke: rgba(255, 255, 255, 0.9); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cc__mod--on svg { stroke: var(--cc-on); }
+
+.cc__tile { width: calc(2 * var(--cc-u) + var(--cc-gap)); display: flex; flex-direction: row; align-items: center; padding: 0 14px 0 20px; }
+.cc__icon { flex: 0 0 auto; display: flex; margin-right: 14px; }
+.cc__icon svg { width: 40px; height: 40px; }
+.cc__text { min-width: 0; }
+.cc__name { font-size: 21px; font-weight: 600; white-space: nowrap; line-height: 1.2; }
+.cc__sub { font-size: 21px; opacity: 0.7; white-space: nowrap; line-height: 1.2; }
+
+.cc__circle { width: var(--cc-u); display: flex; align-items: center; justify-content: center; }
+
+.cc__slider { width: calc(3 * var(--cc-u) + 2 * var(--cc-gap)); overflow: hidden; }
+/* the fill is a second sheet of frost on the slider's glass: a brighter tint and its own rim, no second blur (the slider's glass already blurs) */
+.cc__fill {
+	position: absolute; left: 0; top: 0; bottom: 0; overflow: hidden;
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.14) 45%, rgba(255, 255, 255, 0.24) 100%);
+	box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.95), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.16), 4px 0 14px rgba(0, 0, 0, 0.18);
+}
+.cc__mod--focused .cc__fill { background: linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.26) 45%, rgba(255, 255, 255, 0.40) 100%); }
+.cc__slidertext { position: absolute; left: 0; top: 0; bottom: 0; width: calc(3 * var(--cc-u) + 2 * var(--cc-gap)); display: flex; flex-direction: row; align-items: center; padding: 0 26px 0 22px; box-sizing: border-box; font-size: 21px; font-weight: 600; white-space: nowrap; }
+.cc__slidertext svg { width: 34px; height: 34px; margin-right: 12px; }
+.cc__num { margin-left: auto; font-weight: 500; }
+
+/* A tile's list of choices (Sound, Picture, Theme, Clock), as tvOS's Sleep Timer. ControlCenter.tsx animates every layer with keyframes; these
+   classes hold the states between. The pill stands in for the tile: its focused glass, with the tile's text on top. */
+/* the fade sits on each control, never the grid or list: a parent below full opacity cuts its children's live blur off from the wallpaper */
+.cc__grid--leaving { pointer-events: none; }
+.cc__grid--leaving .cc__mod, .cc__grid--leaving .cc__caption, .cc__mod--gone { opacity: 0; }
+.cc__list { position: absolute; left: 0; top: 0; width: 100%; transform-origin: 0 0; }
+.cc__list:not(.cc__list--shown) { pointer-events: none; }
+.cc__list:not(.cc__list--shown) .cc__opt { opacity: 0; }
+.panel--cc .cc__morph { position: absolute; transform-origin: 0 0; pointer-events: none; }
+.panel--cc .cc__morph > * { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: inherit; transform: none; transition: none; }
+/* the pill's fill without its edge highlight and shadow, which would swell as it scales; .cc__morph__rim draws those, on its own timing */
+html body .panel--cc .cc__morph__glass { box-shadow: none !important; }
+.cc__morph__rim { box-shadow: inset 2px 2px 1.5px -1px rgba(255, 255, 255, 0.9), inset -2px -2px 1.5px -1px rgba(255, 255, 255, 0.42), inset 0 0 14px rgba(255, 255, 255, 0.10), 0 8px 18px rgba(0, 0, 0, 0.25); }
+html.light .cc__morph__rim { box-shadow: 0 8px 18px rgba(20, 24, 40, 0.30); }
+.panel--cc .cc__morph__text { position: absolute; pointer-events: none; color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.cc__morph__text svg { position: static; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cc__morph__text:not(.cc__mod--on) svg { stroke: rgba(255, 255, 255, 0.9); }
+html.light .cc__morph__text { text-shadow: none; }
+/* height and gap match OPT_H and OPT_GAP in ControlCenter.tsx */
+.panel--cc .cc__opt { width: 100%; height: 72px; border-radius: 36px; margin-bottom: 12px; }
+.panel--cc .cc__opt.cc__mod--focused { transform: scale(1.05); }
+.cc__opt .cc__icon svg { width: 34px; height: 34px; }
+
+.cc__caption { height: 30px; line-height: 30px; text-align: center; font-size: 20px; font-weight: 600; color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); }
+
+/* light look: the top buttons' light glass, and focus turns dark as theirs does */
+html.light .cc__mod { color: #14151b; text-shadow: none; background-color: rgb(120, 128, 148); background-blend-mode: normal, screen; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(20, 24, 40, 0.12); }
+html.light.wp-video .cc__mod { background-color: transparent; background-blend-mode: normal; }
+html.liveblur.light .cc__mod { background-color: rgba(255, 255, 255, 0.34) !important; }
+html.light .cc__mod svg { stroke: rgba(20, 22, 32, 0.72); }
+html.light .cc__mod--on svg { stroke: rgb(0, 122, 255); }
+html.light body .panel--cc .cc__mod--focused:not(.cc__slider) { background: #14151b !important; color: #fff; box-shadow: 0 8px 18px rgba(20, 24, 40, 0.30); }
+html.light .cc__mod--focused:not(.cc__slider) svg { stroke: #fff; }
+html.light .cc__mod--focused.cc__mod--on svg { stroke: var(--cc-on); }
+html.light .cc__fill { background: rgba(20, 21, 27, 0.72); }
+html.light .cc__fill .cc__slidertext { color: #fff; }
+html.light .cc__fill .cc__slidertext svg { stroke: #fff; }
+html.light .cc__mod--focused .cc__fill { background: #14151b; }
+html.light .cc__mod--focused .cc__fill .cc__slidertext { color: #fff; }
+html.light .cc__mod--focused .cc__fill .cc__slidertext svg { stroke: #fff; }
+
