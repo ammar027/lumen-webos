@@ -1,19 +1,28 @@
 import {useEffect, useRef, useState} from 'preact/hooks';
 import {Clock} from './Clock';
 import {langLocale} from '../lib/i18n';
-import {WALLPAPERS, cloudUrl} from '../config/wallpapers';
+import {LOCAL_WALLPAPERS, WALLPAPERS, cloudUrl} from '../config/wallpapers';
 import {resized} from '../lib/wallpaper';
 import {dimForScreensaver, restoreBacklight} from '../lib/tvcontrols';
 import {cachedServer, loadServer, nextAsset, picturePosition, previewUrls, type ImmichServer} from '../lib/immich';
 
 const dateText = () => { try { return new Date().toLocaleDateString(langLocale(), {weekday: 'long', month: 'long', day: 'numeric'}); } catch { return new Date().toDateString(); } };
 
-/** The pictures the library screensaver draws from: your favourites, a whole category, or everything in the library (never fewer than a category's worth). */
-function pool (source: string, favorites: string[]) {
+interface Item { id: string; url: string }
+
+/** The pictures the library screensaver draws from: the ones you ticked in Settings > Wallpaper, your favourites, a whole category, or everything in the library (never fewer than a category's worth). */
+function pool (source: string, favorites: string[], picks: string[]): Item[] {
+	const web = (w: typeof WALLPAPERS[number]): Item => ({id: w.id, url: resized(cloudUrl(w), 1920)});
+	if (source === 'picks') {
+		const items = picks.map((k): Item | null => k.indexOf('local:') === 0
+			? (LOCAL_WALLPAPERS[Number(k.slice(6))] ? {id: k, url: LOCAL_WALLPAPERS[Number(k.slice(6))].file} : null)
+			: (WALLPAPERS.filter((w) => w.id === k.slice(6))[0] ? web(WALLPAPERS.filter((w) => w.id === k.slice(6))[0]) : null)).filter((x): x is Item => !!x);
+		if (items.length > 0) return items;
+	}
 	const list = source === 'favorites' ? WALLPAPERS.filter((w) => favorites.indexOf(w.id) !== -1)
-		: source === 'all' ? WALLPAPERS
+		: source === 'all' || source === 'shuffle' ? WALLPAPERS
 		: WALLPAPERS.filter((w) => w.category === source);
-	return list.length > 3 ? list : WALLPAPERS.filter((w) => w.category === 'Landscapes');
+	return (list.length > 3 ? list : WALLPAPERS.filter((w) => w.category === 'Landscapes')).map(web);
 }
 
 interface Layer { urls: string[]; pos: string }
@@ -23,7 +32,7 @@ const decoded = (url: string) => { const img = new Image(); img.src = url; retur
 
 /** A photo screensaver inside Lumen (after the fork's Ambient screen): two full-screen layers swap with a crossfade every `seconds` (opacity only), each picture zooming in very slowly
  *  (transform only); the clock, date and weather sit at the bottom. The pictures come from the wallpaper library, or from your Immich server (source 'immich:...'). Any key or a click returns. */
-export function PhotoSaver ({source, favorites, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
+export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
 	const [layers, setLayers] = useState<[Layer, Layer]>([NO_LAYER, NO_LAYER]);
 	const [front, setFront] = useState(0);
 	const state = useRef({front: 0, alive: true, timer: 0, recent: [] as string[], shown: ''});
@@ -40,7 +49,8 @@ export function PhotoSaver ({source, favorites, seconds, print, backlight, weath
 		const s = state.current;
 		s.alive = true;
 		const immich = source.indexOf('immich:') === 0;
-		const list = immich ? [] : pool(source, favorites);
+		const shuffle = source === 'shuffle';
+		const list = immich ? [] : pool(source, favorites, picks);
 		let server: ImmichServer | null = cachedServer();
 		const show = (layer: Layer) => {
 			if (!s.alive) return;
@@ -50,9 +60,10 @@ export function PhotoSaver ({source, favorites, seconds, print, backlight, weath
 			window.requestAnimationFrame(() => window.requestAnimationFrame(() => { s.front = back; setFront(back); }));
 		};
 		const next = (): Promise<unknown> => {
-			if (immich) {
+			// Shuffle mixes the whole library with your Immich photos when a server is set up
+			if (immich || (shuffle && server && Math.random() < 0.35)) {
 				return (server ? Promise.resolve(server) : loadServer())
-					.then((srv) => { server = srv; return srv ? nextAsset(srv, source, s.shown) : null; })
+					.then((srv) => { server = srv; return srv ? nextAsset(srv, immich ? source : 'immich:recent', s.shown) : null; })
 					.then((id) => {
 						if (!id || !server || !s.alive) return null;
 						const urls = previewUrls(server, id);
@@ -65,7 +76,7 @@ export function PhotoSaver ({source, favorites, seconds, print, backlight, weath
 			const from = fresh.length > 0 ? fresh : list;
 			const pick = from[Math.floor(Math.random() * from.length)];
 			s.recent = s.recent.concat(pick.id).slice(-Math.min(20, Math.max(1, list.length - 2)));
-			const url = resized(cloudUrl(pick), 1920);
+			const url = pick.url;
 			return decoded(url).then(() => show({urls: [url], pos: ''}));
 		};
 		const advance = () => {
@@ -82,7 +93,7 @@ export function PhotoSaver ({source, favorites, seconds, print, backlight, weath
 			window.removeEventListener('keydown', exit, true);
 			window.removeEventListener('mousedown', exit, true);
 		};
-	}, [source, seconds]);
+	}, [source, seconds, picks.join('|')]);
 
 	return (
 		<div class="ambient">
