@@ -9,7 +9,7 @@ s = re.sub(r'"title": "[^"]*"', f'"title": "{NAME}"', s, 1)
 if '"bgImage"' not in s:
     s = s.replace('"largeIcon": "largeIcon.png",', '"largeIcon": "largeIcon.png",\n  "bgImage": "splash.png",\n  "splashBackground": "splash.png",')
 s = s.replace('"id": "works.partridge.webos-launcher"', '"id": "com.ammar027.lumen"').replace('"vendor": "works.partridge.webos-launcher"', '"vendor": "ammar027"')
-s = s.replace('"version": "1.0.0"', '"version": "1.0.7"')
+s = s.replace('"version": "1.0.0"', '"version": "1.1.0"')
 # Declare eligibility only. Selecting Lumen as the default Home is a user action.
 manifest = json.loads(s)
 categories = manifest.setdefault('appCategory', [])

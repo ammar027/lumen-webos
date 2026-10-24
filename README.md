@@ -7,6 +7,8 @@ Its companion is [Lumen Gallery](https://github.com/ammar027/lumen-gallery-webos
 Tested on an LG 65UQ8040PSB (webOS 22, Chromium 87, 1.5 GB RAM). It needs a rooted TV with the
 [Homebrew Channel](https://www.webosbrew.org/); a few features (screen off, restart, picture mode, the Home-button takeover) use its root service.
 
+![Lumen 1.1: home screen, Control Center, Clock settings, StandBy and Settings in a grid](docs/bento/bento-main.png)
+
 ## Demo
 
 ![A short walkthrough: moving along the dock, the second row, and Control Center](docs/demo/lumen-demo.gif)
@@ -32,11 +34,17 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 - **tvOS navigation and look:** a glass dock row of apps, a second row of more apps and a Recent row that appear as you move down, focus lift with a name
   under the tile, a wallpaper library (cloud and bundled, shuffle per category, favourites, auto-change, night dimming), folders, hold-OK menu
   (move, remove, add to folder), and a Settings app in the same style.
-- **Control Center:** sound, picture mode, sleep timer, screensaver start time, LG Home, Settings, Art mode, start screensaver, screen off, restart and volume.
+- **Control Center:** a tvOS 26-style grid: sound, picture mode, theme, sleep timer, LG Home, screensaver, screen off, Settings and backlight.
+- **Recent Apps:** a card for each open app (time-pill menu, or hold OK on an app). Up closes an app, Close all closes the lot.
 - **Appearance:** Light, Dark or Auto (dark from 7 pm to 6 am), in Settings and in the Control Center; the dock can slide away with Down or after a few idle seconds.
 - **Video wallpaper:** Settings > Wallpaper > Video. Pick one or several places (Switzerland, Norway, Iceland, Italy, Greece, Germany, Czechia, Spain, the Netherlands,
   Portugal and more, plus Apple's aerial videos); it streams from the internet and pauses LG's screensaver while it plays.
-- **Language and clock:** nine languages for the menus, dates and weather, and a 12 / 24-hour option. **Weather:** pick a country and a city (about 180 cities).
+- **StandBy:** a full-screen face to leave on, after Apple's StandBy: Digital, Float, Analog, Calendar, Solar, Photos, Weather, Fade and Flow, in seven colours, with a red Night Mode. Pick it as the screensaver (Settings > Screensaver).
+  ![StandBy faces](docs/bento/bento-standby.png)
+- **Clock:** Settings > Clock has the style (digital, date, seconds, analog), colour, size, weight, position, a Stacked layout with a weather icon, and a Frosted look; every choice shows a live preview. The photo screensaver has its own clock position, size and blur.
+- **Photo screensaver:** a slideshow from the wallpaper library (or your own Immich server), with the clock, date and weather. Optional [Immich](docs/immich.md) wallpaper and screensaver source.
+- **First-run setup and Apple TV defaults:** a short setup on a fresh install, and one button (Settings > System) that sets everything to how tvOS starts.
+- **Language and clock format:** nine languages for the menus, dates and weather, and a 12 / 24-hour option. **Weather:** pick a country and a city (about 180 cities).
 - **Top left:** date, time and weather (Open-Meteo, optional city); top right: Inputs and Control Center.
 - **Cheap on purpose:** no live blur or SVG filters. The "glass" is a pre-blurred copy of the wallpaper seen through the glass shapes, with static rim lights;
   only `transform` and `opacity` animate. See [RESEARCH.md](RESEARCH.md).
@@ -45,10 +53,10 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 
 ## Easy install: download the .ipk
 
-Don't want to build anything? Download `com.ammar027.lumen_1.0.10_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
+Don't want to build anything? Download `com.ammar027.lumen_1.1.0_all.ipk` from the [latest release](https://github.com/ammar027/lumen-webos/releases/latest) and install it on your TV:
 
 - **With a mouse and no command line:** open [Dev Manager Desktop](https://github.com/webosbrew/dev-manager-desktop/releases), add your TV, go to *Apps* and drop the `.ipk` onto the window.
-- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.0.10_all.ipk`.
+- **Or** with the webOS CLI: `npx -p @webos-tools/cli ares-install --device lgtv com.ammar027.lumen_1.1.0_all.ipk`.
 
 The release build leaves out third-party app logos and the default wallpapers are public-domain paintings; apps without an icon get a plain tile.
 Optional: see [Native Home selection](docs/native-home.md) for supported firmware, required metadata, and restoration steps.
@@ -82,7 +90,7 @@ To undo it, delete the hook file and stop `watch.sh`.
 
 ## Credits
 
-Built on partridgeworks/webos-launcher (MIT). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Not affiliated with LG, Apple or any app vendor.
+Built on partridgeworks/webos-launcher (MIT). Ideas and pieces from two forks, both credited with thanks: [xcv58's](https://github.com/xcv58) work on a webOS 5 launcher (PR #8) and [Sam Renfrew's fork](https://github.com/samrenfrew/lumen-webos) (MIT): the Settings page stack, the tvOS 26 Control Center, the canvas backdrops, the live-glass option, the photo screensaver and Immich. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Not affiliated with LG, Apple or any app vendor.
 Licence: [MIT](LICENSE).
 
 ## TV experience fixes

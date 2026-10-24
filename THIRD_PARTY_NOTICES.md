@@ -18,3 +18,7 @@ affiliated with or endorsed by them, or by LG Electronics, Apple Inc. or Samsung
 ## Sam Renfrew's fork
 
 The canvas backdrops for the lower rows and Settings (`lib/blurCanvas.ts`), the open-app dot, the Art and Landscapes wallpaper lists and their generator (`tools/harvest_open.py`, `tools/build_catalog.py`) come from <https://github.com/samrenfrew/lumen-webos> (MIT). The frame-rate findings behind them are in that fork's `docs/down-up-lag-review.md`. Art pictures are public-domain paintings (Cleveland Museum of Art, Met); Landscapes are Wikimedia Commons pictures under their own licences, with the credit kept in the list.
+
+## xcv58's PR #8
+
+Two small pieces of the webOS 5 launcher trial in PR #8 by [xcv58](https://github.com/xcv58) were taken over by hand: the app icon drawn in pieces, and "Input Source N" shown as "HDMI N" (`tools/apply_webos5.py`). The rest of that PR was not merged. Thank you.
