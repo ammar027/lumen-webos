@@ -71,6 +71,12 @@ sub("\t\telse if (cell === 'dark') outer.current.onDarkMode(value);", "\t\telse 
 sub("\t\t\t\t: cell === 'dark' ? {glyph: 'screensaver', title: tr('Theme')", "\t\t\t\t: cell === 'sleep' ? {glyph: 'power', title: tr('Sleep timer'), sub: values.sleepMinutes ? `${values.sleepMinutes} ${tr('min')}` : tr('Off'), on: values.sleepMinutes > 0}\n\t\t\t\t: cell === 'dark' ? {glyph: 'screensaver', title: tr('Theme')")
 sub("{cell: 'art', glyph: 'image', label: 'Screensaver'}", "{cell: 'art', glyph: 'image', label: 'Art mode'}")
 sub("\t\t\t\t\t{wide('clock')}\n", "\t\t\t\t\t{wide('sleep')}\n")
+# Settings takes Restart's place in the row of circles (the old Control Center had a Settings tile; without it nothing in the panel leads to Settings)
+sub("type CellId = 'sleep' |", "type CellId = 'settings' | 'sleep' |")
+sub("{id: 'screenoff', span: 1}, {id: 'restart', span: 1}]", "{id: 'screenoff', span: 1}, {id: 'settings', span: 1}]")
+sub("{cell: 'restart', glyph: 'restart', label: 'Restart'}", "{cell: 'settings', glyph: 'gear', label: 'Settings'}")
+sub("{circle('screenoff')}{circle('restart')}", "{circle('screenoff')}{circle('settings')}")
+sub("\t\telse if (cell === 'art') onAction('art');", "\t\telse if (cell === 'art') onAction('art');\n\t\telse if (cell === 'settings') onAction('settings');")
 open(P('components/ControlCenter.tsx'), 'w').write(s)
 
 # ---- CSS: drop our Control Center rules (selectors that are only ours), add theirs ----
