@@ -34,6 +34,7 @@ open(P('theme/global.css'), 'a').write('''
 /* photo screensaver: clock block (clock, date, weather) placed like a lock screen */
 .ambient__block { position: absolute; left: 90px; bottom: 64px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
 .ambient__block .ambient__clock, .ambient__block .ambient__info { position: static; text-align: inherit; }
+.ambient__block .clock { position: static !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; margin: 0 !important; }
 .ambient__block .ambient__info { margin-top: 6px; }
 .ambient__block .ambient__weather { margin-bottom: 4px; }
 html.pcpos-off .ambient__block { display: none; }
