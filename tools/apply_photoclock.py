@@ -41,9 +41,18 @@ html.pcpos-bc .ambient__block, html.pcpos-tc .ambient__block, html.pcpos-c .ambi
 html.pcpos-br .ambient__block, html.pcpos-tr .ambient__block { left: auto; right: 90px; align-items: flex-end; text-align: right; }
 html.pcpos-tl .ambient__block, html.pcpos-tc .ambient__block, html.pcpos-tr .ambient__block { bottom: auto; top: 70px; }
 html.pcpos-c .ambient__block { bottom: auto; top: 50%; transform: translateY(-50%); }
-html.pcsize-small .ambient__block { zoom: 0.7; }
-html.pcsize-large .ambient__block { zoom: 1.4; }
-html.pcsize-xl .ambient__block { zoom: 1.9; }
+html.pcsize-small .ambient__block { transform: scale(0.7); }
+html.pcsize-large .ambient__block { transform: scale(1.4); }
+html.pcsize-xl .ambient__block { transform: scale(1.9); }
+html.pcpos-bl .ambient__block, html.pcpos-tl .ambient__block { transform-origin: left bottom; }
+html.pcpos-tl .ambient__block { transform-origin: left top; }
+html.pcpos-bc .ambient__block { transform-origin: center bottom; }
+html.pcpos-tc .ambient__block { transform-origin: center top; }
+html.pcpos-br .ambient__block { transform-origin: right bottom; }
+html.pcpos-tr .ambient__block { transform-origin: right top; }
+html.pcpos-c.pcsize-small .ambient__block { transform: translateY(-50%) scale(0.7); }
+html.pcpos-c.pcsize-large .ambient__block { transform: translateY(-50%) scale(1.4); }
+html.pcpos-c.pcsize-xl .ambient__block { transform: translateY(-50%) scale(1.9); }
 html.pc-noinfo .ambient__block .ambient__info { display: none; }
 html.pcblur-soft .ambient__photo { filter: blur(10px); }
 html.pcblur-strong .ambient__photo { filter: blur(28px); }
