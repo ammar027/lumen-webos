@@ -76,3 +76,7 @@ To undo it, delete the hook file and stop `watch.sh`.
 
 Built on partridgeworks/webos-launcher (MIT). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Not affiliated with LG, Apple or any app vendor.
 Licence: [MIT](LICENSE).
+
+## TV experience fixes
+
+See [Home behavior, black startup, faster glass rows, personal TV icons and Gallery screensaver](docs/tv-experience.md) for the final build layer and optional TV setup. Home takeover preserves previous-input startup; native Home bindings require an already-installed compatible input hook.
