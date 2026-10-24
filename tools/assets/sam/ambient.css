@@ -31,3 +31,27 @@ html.reduce-motion .ambient__photo { animation: none; }
 .ambient__info { position: absolute; right: 90px; bottom: 76px; text-align: right; color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5); font-size: 28px; font-weight: 500; }
 .ambient__weather { margin-bottom: 8px; opacity: 0.9; }
 .ambient__date { opacity: 0.85; }
+
+/* the photo screensaver's clock styles (Settings > Screensaver > Clock): Corner is above; Big and Analog are centred low on the picture, as Apple's Portraits puts a clock over a photo */
+.ambient__big { position: absolute; left: 0; right: 0; bottom: 120px; text-align: center; color: #fff; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+.ambient__bigtime .clock { display: inline-block; }
+.ambient__bigtime .clock__time { font-size: 250px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; opacity: 0.94; }
+.ambient__bigtime .clock__period { font-size: 56px; font-weight: 400; margin-left: 14px; }
+.ambient__bigdate { margin-top: 10px; font-size: 34px; font-weight: 500; opacity: 0.9; }
+.ambient__analogwrap { position: absolute; left: 0; right: 0; bottom: 90px; display: flex; flex-direction: column; align-items: center; color: #fff; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
+.ambient__analog { width: 340px; height: 340px; }
+.ambient__face { fill: rgba(255, 255, 255, 0.14); stroke: rgba(255, 255, 255, 0.55); stroke-width: 2; }
+.ambient__tick { stroke: rgba(255, 255, 255, 0.85); stroke-width: 3; stroke-linecap: round; }
+.ambient__hand { stroke: #fff; stroke-linecap: round; }
+.ambient__hand--h { stroke-width: 9; }
+.ambient__hand--m { stroke-width: 6; }
+.ambient__pin { fill: #fff; }
+
+/* the base .clock is pinned top right with a glass pill: here it sits in the flow of its own box, plain */
+.ambient__bigtime .clock, .ambient__clock .clock { position: static; right: auto; top: auto; display: inline-block; background: none !important; box-shadow: none !important; border: 0; padding: 0; color: #fff; font-weight: inherit; }
+
+/* Portraits: very tall, narrow, see-through glass digits down the left of the picture, as in Apple's Portraits screen saver. The figures are an ordinary font stretched tall (scaleX), filled with a pale translucent tint and a fine rim. */
+.ambient__portrait { position: absolute; left: 80px; top: 70px; width: 1100px; height: 940px; overflow: visible; pointer-events: none; }
+.ambient__portrait .clock { position: static; display: block; background: none !important; box-shadow: none !important; border: 0; padding: 0; transform: scale(0.4, 1); transform-origin: 0 0; white-space: nowrap; }
+.ambient__portrait .clock__time { font-size: 1000px; font-weight: 700; line-height: 0.94; letter-spacing: -0.02em; color: rgba(255, 255, 255, 0.42); -webkit-text-stroke: 6px rgba(255, 255, 255, 0.3); text-shadow: 0 10px 60px rgba(40, 70, 120, 0.22); }
+.ambient__portrait .clock__colon { opacity: 1; }

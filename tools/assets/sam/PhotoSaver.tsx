@@ -8,6 +8,22 @@ import {cachedServer, loadServer, nextAsset, picturePosition, previewUrls, type 
 
 const dateText = () => { try { return new Date().toLocaleDateString(langLocale(), {weekday: 'long', month: 'long', day: 'numeric'}); } catch { return new Date().toDateString(); } };
 
+/** A plain analog clock face: hands move once every 30 s (no second hand, nothing animates). */
+function AnalogClock () {
+	const [now, setNow] = useState(() => new Date());
+	useEffect(() => { const id = window.setInterval(() => setNow(new Date()), 30000); return () => window.clearInterval(id); }, []);
+	const h = (now.getHours() % 12) * 30 + now.getMinutes() * 0.5, m = now.getMinutes() * 6;
+	return (
+		<svg class="ambient__analog" viewBox="-100 -100 200 200" aria-hidden="true">
+			<circle r="96" class="ambient__face" />
+			{Array.from({length: 12}, (_, i) => <line key={i} x1="0" y1="-84" x2="0" y2={i % 3 === 0 ? -70 : -76} class="ambient__tick" transform={`rotate(${i * 30})`} />)}
+			<line x1="0" y1="6" x2="0" y2="-50" class="ambient__hand ambient__hand--h" transform={`rotate(${h})`} />
+			<line x1="0" y1="8" x2="0" y2="-76" class="ambient__hand ambient__hand--m" transform={`rotate(${m})`} />
+			<circle r="5" class="ambient__pin" />
+		</svg>
+	);
+}
+
 interface Item { id: string; url: string }
 
 /** The pictures the library screensaver draws from: the ones you ticked in Settings > Wallpaper, your favourites, a whole category, or everything in the library (never fewer than a category's worth). */
@@ -32,7 +48,7 @@ const decoded = (url: string) => { const img = new Image(); img.src = url; retur
 
 /** A photo screensaver inside Lumen (after the fork's Ambient screen): two full-screen layers swap with a crossfade every `seconds` (opacity only), each picture zooming in very slowly
  *  (transform only); the clock, date and weather sit at the bottom. The pictures come from the wallpaper library, or from your Immich server (source 'immich:...'). Any key or a click returns. */
-export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
+export function PhotoSaver ({source, favorites, picks, seconds, print, backlight, clockStyle = 'corner', weatherText, showPeriod, onExit}: {source: string; favorites: string[]; picks: string[]; seconds: number; print: boolean; backlight?: number; clockStyle?: string; weatherText?: string; showPeriod?: boolean; onExit: () => void}) {
 	const [layers, setLayers] = useState<[Layer, Layer]>([NO_LAYER, NO_LAYER]);
 	const [front, setFront] = useState(0);
 	const state = useRef({front: 0, alive: true, timer: 0, recent: [] as string[], shown: ''});
@@ -105,8 +121,21 @@ export function PhotoSaver ({source, favorites, picks, seconds, print, backlight
 			{print && <div class="ambient__print" />}
 			<div class="ambient__night" />
 			<div class="ambient__shade" />
-			<div class="ambient__clock"><Clock showPeriod={showPeriod} /></div>
-			<div class="ambient__info">{weatherText && <div class="ambient__weather">{weatherText}</div>}<div class="ambient__date">{dateText()}</div></div>
+			{clockStyle === 'corner' && <div class="ambient__clock"><Clock showPeriod={showPeriod} /></div>}
+			{clockStyle === 'corner' && <div class="ambient__info">{weatherText && <div class="ambient__weather">{weatherText}</div>}<div class="ambient__date">{dateText()}</div></div>}
+			{clockStyle === 'big' && (
+				<div class="ambient__big">
+					<div class="ambient__bigtime"><Clock showPeriod={showPeriod} /></div>
+					<div class="ambient__bigdate">{dateText()}{weatherText ? ' \u00b7 ' + weatherText : ''}</div>
+				</div>
+			)}
+			{clockStyle === 'portrait' && <div class="ambient__portrait"><Clock /></div>}
+			{clockStyle === 'analog' && (
+				<div class="ambient__analogwrap">
+					<AnalogClock />
+					<div class="ambient__bigdate">{dateText()}{weatherText ? ' \u00b7 ' + weatherText : ''}</div>
+				</div>
+			)}
 		</div>
 	);
 }
