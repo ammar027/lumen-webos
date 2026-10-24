@@ -32,6 +32,8 @@ html.clock-frosted .screen > .pill.status .clock__time, html.clock-frosted .scre
 	-webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.62); text-shadow: none;
 	filter: drop-shadow(0 2px 7px rgba(0, 0, 0, 0.28));
 }
+/* the colon was its own layer (position, opacity), so the frosted fill skipped it */
+html.clock-frosted .clock__colon, html.pc-frosted .clock__colon { position: static !important; opacity: 1 !important; top: 0 !important; }
 html.clock-frosted .screen > .pill.status .clock__period { color: rgba(255, 255, 255, 0.7); -webkit-text-stroke: 0; }
 ''')
 print('clocklook applied')
