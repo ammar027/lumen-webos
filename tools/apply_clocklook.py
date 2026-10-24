@@ -26,7 +26,7 @@ edit(P('app.tsx'), [
 open(P('theme/global.css'), 'a').write('''
 html.clock-frosted .screen > .pill.status .clock__time, html.clock-frosted .screen > .pill.status .status__date {
 	color: transparent; -webkit-text-fill-color: transparent;
-	background-image: linear-gradient(rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.34)), var(--wp-blur, none);
+	background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.14) 42%, rgba(255, 255, 255, 0.30) 100%), var(--wp-blur, none);
 	background-size: auto, 1920px 1080px; background-attachment: scroll, fixed; background-repeat: no-repeat;
 	-webkit-background-clip: text; background-clip: text;
 	-webkit-text-stroke: 1.4px rgba(255, 255, 255, 0.62); text-shadow: none;
