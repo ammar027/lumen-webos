@@ -39,7 +39,7 @@ then shows a short "too old" message instead of a blank screen. Rooted TVs only 
 - **Clock:** Settings > Clock has the style (digital, date, seconds, analog), colour, size, weight, position, a Stacked layout with a weather icon, and a Frosted look; every choice shows a live preview. The photo screensaver has its own clock position, size and blur.
 - **Photo screensaver:** a slideshow from the wallpaper library (or your own Immich server), with the clock, date and weather. Optional [Immich](docs/immich.md) wallpaper and screensaver source.
 - **First-run setup and Apple TV defaults:** a short setup on a fresh install, and one button (Settings > System) that sets everything to how tvOS starts.
-- **Language and clock format:** nine languages for the menus, dates and weather, and a 12 / 24-hour option. **Weather:** pick a country and a city (about 180 cities).
+- **Language and clock format:** ten languages for the menus, dates and weather, and a 12 / 24-hour option. Russian also covers descriptions, hints and wallpaper catalogues. **Weather:** pick a country and a city (about 180 cities).
 - **Top left:** date, time and weather (Open-Meteo, optional city); top right: Inputs and Control Center.
 - **Cheap on purpose:** no live blur or SVG filters. The "glass" is a pre-blurred copy of the wallpaper seen through the glass shapes, with static rim lights;
   only `transform` and `opacity` animate. See [RESEARCH.md](RESEARCH.md).
