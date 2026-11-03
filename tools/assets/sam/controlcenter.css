@@ -45,7 +45,8 @@ html.liveblur.dockblur .rows > .row:first-child::before { -webkit-backdrop-filte
 .cc__tile { width: calc(2 * var(--cc-u) + var(--cc-gap)); display: flex; flex-direction: row; align-items: center; padding: 0 14px 0 20px; }
 .cc__icon { flex: 0 0 auto; display: flex; margin-right: 14px; }
 .cc__icon svg { width: 40px; height: 40px; }
-.cc__text { min-width: 0; }
+.cc__text { flex: 1 1 0; min-width: 0; }
+.cc__name, .cc__sub { overflow: hidden; text-overflow: ellipsis; }
 .cc__name { font-size: 21px; font-weight: 600; white-space: nowrap; line-height: 1.2; }
 .cc__sub { font-size: 21px; opacity: 0.7; white-space: nowrap; line-height: 1.2; }
 
@@ -60,8 +61,9 @@ html.liveblur.dockblur .rows > .row:first-child::before { -webkit-backdrop-filte
 }
 .cc__mod--focused .cc__fill { background: linear-gradient(135deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.26) 45%, rgba(255, 255, 255, 0.40) 100%); }
 .cc__slidertext { position: absolute; left: 0; top: 0; bottom: 0; width: calc(3 * var(--cc-u) + 2 * var(--cc-gap)); display: flex; flex-direction: row; align-items: center; padding: 0 26px 0 22px; box-sizing: border-box; font-size: 21px; font-weight: 600; white-space: nowrap; }
-.cc__slidertext svg { width: 34px; height: 34px; margin-right: 12px; }
-.cc__num { margin-left: auto; font-weight: 500; }
+.cc__slidertext svg { flex: 0 0 auto; width: 34px; height: 34px; margin-right: 12px; }
+.cc__slidertext > span:not(.cc__num) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cc__num { flex: 0 0 auto; margin-left: auto; padding-left: 12px; font-weight: 500; }
 
 /* A tile's list of choices (Sound, Picture, Theme, Clock), as tvOS's Sleep Timer. ControlCenter.tsx animates every layer with keyframes; these
    classes hold the states between. The pill stands in for the tile: its focused glass, with the tile's text on top. */
