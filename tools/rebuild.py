@@ -25,4 +25,5 @@ for name in layers:
     except subprocess.CalledProcessError:
         if name not in TV_EDIT: raise
         print(f'{name}: its TV-side script edit was already in the repository, continuing')
+sh('node', f'{ROOT}/tools/check_russian.mjs')
 if '--no-build' not in sys.argv: sh('npm', 'run', 'build'); sh('npm', 'run', 'package')
