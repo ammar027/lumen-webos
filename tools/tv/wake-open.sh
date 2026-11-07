@@ -2,13 +2,16 @@
 # Opt-in TV tool (idea and logic from Sam Renfrew's fork, MIT; the wake rule was tested here only with a simulated wake, not a real power-off or Wake-on-LAN): after the TV wakes, open Lumen as soon as the screen is on,
 # whatever the TV opened itself. Wake-on-LAN resumes the TV straight into Live TV and skips LG Home, so a rule that only replaces LG Home does nothing.
 # Run as root in the background (the Homebrew Channel's startup scripts, or `sh wake-open.sh &`). Switch off by deleting /var/lib/homehook/wake-open.
-# While a wake is open the loop ticks every 0.5 s and starts Lumen each tick until it has stayed in front for SETTLE seconds, or WAKE seconds have passed.
+# A boot counts as a wake too (the first 90 s). While a wake is open the loop ticks every 0.5 s and starts Lumen each tick until it has stayed in front for SETTLE seconds, or WAKE seconds have passed.
 APP=com.ammar027.lumen
 FLAG=/var/lib/homehook/wake-open
 WAKE=30
 SETTLE=3
 mkdir -p /var/lib/homehook; touch "$FLAG"
-prev=""; until=0; since=0; tick=$(date +%s)
+prev=""; since=0; tick=$(date +%s)
+# a boot counts as a wake: the tool starts about 45 s into it, and Lumen should be what the TV shows (LG Home or the last input may come up first)
+BOOT=90
+until=$((tick + BOOT))
 while [ -f "$FLAG" ]; do
   now=$(date +%s)
   state=$(luna-send -n 1 luna://com.webos.service.tvpower/power/getPowerState '{}' </dev/null 2>/dev/null | sed -n 's/.*"state": *"\([^"]*\)".*/\1/p')
