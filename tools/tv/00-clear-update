@@ -1,0 +1,43 @@
+#!/bin/sh
+# webosbrew boot hook, first in run-parts order. Two jobs, both as early as hooks can run (about 38 to 44 s after boot):
+# 1. Stop LG's preload manager and close the apps it had already preloaded (LG Channels, Google Assistant, YouTube). Luma, opened by the TV as an input at about 23 s,
+#    was exiting by itself at about 48 s while those preloads took the memory; the TV then relaunched it and the screen went black for a few seconds.
+# 2. LG's update process learns of a firmware update in the first seconds of every boot and pops up its alert at about 37 s. Restarting that process wipes the record.
+#    Checked every 0.5 s from the first moment, then every 10 minutes. Log: /tmp/clear-update-banner.log.
+#    The hook starts after the alert is already up (alert at 42 s, record cleared at 48 s on Nov 7), and wiping the record leaves the alert on screen (it stayed
+#    2 minutes), so for the first 3 minutes it also closes the latest alert from LG's update service every 2.5 s (closing one that is still
+#    queued does not stop it from showing a moment later, so it is closed again each round; closing a closed one does nothing).
+# Never blocks boot. Undo: rm /var/lib/webosbrew/init.d/00-clear-update.
+(
+  PATH="/bin:/sbin:/usr/bin:/usr/sbin:$PATH"
+  LOG=/tmp/clear-update-banner.log
+  up() { cut -d. -f1 /proc/uptime; }
+  systemctl stop preload-manager.service 2>/dev/null
+  front=$(luna-send -n 1 luna://com.webos.applicationManager/getForegroundAppInfo '{}' </dev/null 2>/dev/null | sed -n 's/.*"appId": *"\([^"]*\)".*/\1/p')
+  for a in lgchannels com.webos.app.lgchannels google.assistant youtube.leanback.v4 netflix amazon; do
+    [ "$a" = "$front" ] && continue
+    luna-send -n 1 luna://com.webos.applicationManager/closeByAppId "{\"id\":\"$a\"}" </dev/null >/dev/null 2>&1
+  done
+  echo "boot+$(up)s preload manager stopped, preloaded apps closed (front=$front)" >> $LOG
+  clear() {
+    n=$(luna-send -n 1 luna://com.webos.service.update/getStatus '{}' </dev/null 2>/dev/null | sed -n 's/.*"nsuImageSize": *\([0-9]*\).*/\1/p')
+    [ -n "$n" ] && [ "$n" -gt 0 ] || return
+    for p in /proc/[0-9]*; do
+      [ "$(cat $p/comm 2>/dev/null)" = update ] || continue
+      kill "${p#/proc/}" 2>/dev/null && echo "boot+$(up)s update record ($n bytes) cleared, update process ${p#/proc/} restarted" >> $LOG
+    done
+  }
+  closed=
+  close_alert() {
+    a=$(luna-send -n 2 -w 1500 luna://com.webos.notification/getAlertNotification '{"subscribe":true}' </dev/null 2>/dev/null | grep '"sourceId":"com.webos.service.update"' | sed -n 's/.*"alertId":"\([^"]*\)".*/\1/p')
+    [ -n "$a" ] || return
+    luna-send -n 1 -a com.webos.service.update luna://com.webos.notification/closeAlert "{\"alertId\":\"$a\"}" </dev/null >/dev/null 2>&1 && [ "$a" != "$closed" ] && closed=$a && echo "boot+$(up)s update alert $a closed" >> $LOG
+  }
+  i=0
+  while :; do
+    clear
+    [ $i -lt 360 ] && [ $((i % 5)) -eq 0 ] && close_alert
+    if [ $i -lt 360 ]; then i=$((i + 1)); sleep 0.5; else sleep 600; fi
+  done
+) </dev/null >/dev/null 2>&1 &
+exit 0
