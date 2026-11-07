@@ -4,3 +4,6 @@
 ::	hesads.akamaized.net
 0.0.0.0	ad.doubleclick.net
 ::	ad.doubleclick.net
+# 2026-11-07: LG update server missing from the Homebrew Channel update block (it covers snu/su/su-dev/su-ssl); the update service learned of a 1.4 GB firmware from it on each boot and showed its alert for 2 minutes.
+0.0.0.0	nsu.lge.com
+::	nsu.lge.com
