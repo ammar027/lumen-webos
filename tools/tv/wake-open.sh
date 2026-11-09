@@ -3,6 +3,8 @@
 # whatever the TV opened itself. Wake-on-LAN resumes the TV straight into Live TV and skips LG Home, so a rule that only replaces LG Home does nothing.
 # Run as root in the background (the Homebrew Channel's startup scripts, or `sh wake-open.sh &`). Switch off by deleting /var/lib/homehook/wake-open.
 # A boot counts as a wake too (the first 90 s). While a wake is open the loop ticks every 0.5 s and starts Lumen each tick until it has stayed in front for SETTLE seconds, or WAKE seconds have passed.
+# It only replaces LG's own screens (LG Home, Live TV, inputs: com.webos.* / com.lge.*). An app you opened yourself ends the wake instead (on 2026-11-09 it
+# started 47 s into a boot and pushed Lumen over Netflix opened at 41 s).
 APP=com.ammar027.lumen
 FLAG=/var/lib/homehook/wake-open
 WAKE=30
@@ -26,7 +28,10 @@ while [ -f "$FLAG" ]; do
       [ $((now - since)) -ge "$SETTLE" ] && until=0
     else
       since=0
-      luna-send -n 1 luna://com.webos.applicationManager/launch "{\"id\":\"$APP\"}" </dev/null >/dev/null 2>&1 &
+      case "$front" in
+        ""|com.webos.*|com.lge.*) luna-send -n 1 luna://com.webos.applicationManager/launch "{\"id\":\"$APP\"}" </dev/null >/dev/null 2>&1 & ;;
+        *) until=0 ;;   # an app you opened: leave it
+      esac
     fi
   fi
   if [ "$now" -lt "$until" ]; then sleep 0.5; else sleep 1; fi
