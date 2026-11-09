@@ -2,6 +2,8 @@
 # Home button -> custom launcher, and screensaver -> Frame (art mode). Once a second, checks which app is in front.
 #  - When LG's own Home has just come up, opens the launcher instead (polling, because luna-send buffers a subscription's output when it is piped).
 #    The launcher's own "LG Home" button touches /tmp/allow_lg_home first, so LG Home can still be opened on purpose (it then stays until you leave it).
+#    About 70 s after a cold boot the TV opens LG Home by itself ("last input", not the Home button) on top of whatever you opened; then the app you were
+#    in is opened again instead of the launcher (seen on 2026-11-09: Netflix opened at 68 s, pushed out by LG Home at 70.7 s).
 #  - When the TV's power state becomes "Screen Saver" (LG's screensaver is not a foreground app, so the power state is what shows it) and
 #    /var/lib/homehook/frame-screensaver exists: opens Frame in screensaver mode, then ends LG's screensaver (turnOnScreen) so Frame is what shows.
 # Never spins: reacts only when the app changes, and at most once every 3 s. Does nothing if the app is not installed.
@@ -19,6 +21,7 @@ okhome=0
 ticks=0
 saverlast=0
 pwprev=""
+lastapp=""
 
 while true; do
   out=$(luna-send -n 1 luna://com.webos.applicationManager/getForegroundAppInfo '{}' </dev/null 2>/dev/null)
@@ -36,11 +39,23 @@ while true; do
       fi
       if [ "$okhome" -eq 0 ] && [ -d "$APPS/$ME" ] && { [ $((now - last)) -ge 3 ] || [ $((now - last)) -lt 0 ]; }; then
         last=$now
-        luna-send -n 1 luna://com.webos.applicationManager/launch "{\"id\":\"$ME\"}" </dev/null >/dev/null 2>&1
+        target=$ME
+        # LG's own boot-time "last input" opening (logged by SAM a moment ago): go back to the app that was in front, if it was a real app
+        if [ "$prev" != "$LGHOME" ] && [ -n "$lastapp" ] && [ "$lastapp" != "$ME" ]; then
+          up=$(cut -d. -f1 /proc/uptime)
+          lt=$(tail -n 300 /var/log/messages 2>/dev/null | grep '"app_id":"'$LGHOME'".*"mode":"last_input"' | tail -n 1 | sed -n 's/.*\[\([0-9]*\)\.[0-9]*\].*/\1/p')
+          [ -n "$lt" ] && [ $((up - lt)) -le 5 ] && target=$lastapp && echo "$(date +%T) LG Home opened by last_input, back to $lastapp" >> /tmp/homehook.log
+        fi
+        luna-send -n 1 luna://com.webos.applicationManager/launch "{\"id\":\"$target\"}" </dev/null >/dev/null 2>&1
       fi
       prev=$LGHOME
       ;;
-    *) prev="other" ;;
+    *)
+      prev="other"
+      # the app in front, for the case above (launcher, Frame and LG's own system apps are not reopened)
+      a=$(echo "$out" | sed -n 's/.*"appId": *"\([^"]*\)".*/\1/p')
+      case "$a" in ""|$ME|$FRAME|com.webos.*|com.lge.*) ;; *) lastapp=$a ;; esac
+      ;;
   esac
   # video wallpaper on and the launcher in front: no screensaver, LG's is ended as soon as it starts
   vid=0
